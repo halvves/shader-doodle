@@ -1,0 +1,82 @@
+{
+  "name": "shader-doodle",
+  "description": "A friendly web-component for writing and rendering shaders.",
+  "license": "MIT",
+  "author": "halvves <hi@halvves.com>",
+  "version": "0.0.0",
+  "main": "dist/shader-doodle.cjs.js",
+  "module": "dist/shader-doodle.esm.js",
+  "browser": "dist/shader-doodle.umd.js",
+  "unpkg": "dist/shader-doodle.umd.js",
+  "homepage": "https://github.com/halvves/shader-doodle",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/halvves/shader-doodle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/halvves/shader-doodle/issues"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "WebGL",
+    "shadertoy",
+    "glsl",
+    "3d",
+    "canvas",
+    "shader-doodle",
+    "web-components"
+  ],
+  "scripts": {
+    "prepublishOnly": "npm run build",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "pretty": "npm run pretty-src -- \"src/**/*.js\" && npm run pretty-pkg",
+    "pretty-pkg": "prettier-package-json --write ./package.json",
+    "pretty-src": "prettier --write"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/env",
+        {
+          "targets": {
+            "browsers": [
+              "last 2 versions",
+              "safari >= 7"
+            ]
+          },
+          "modules": false
+        }
+      ]
+    ]
+  },
+  "lint-staged": {
+    "src/**/*.js": [
+      "npm run pretty-src --",
+      "git add"
+    ],
+    "package.json": [
+      "prettier-package-json --write",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "es5"
+  },
+  "devDependencies": {
+    "@ampproject/rollup-plugin-closure-compiler": "^0.8.5",
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "husky": "^1.3.1",
+    "lint-staged": "^8.1.3",
+    "prettier": "^1.16.4",
+    "prettier-package-json": "^2.0.1",
+    "rollup": "^1.1.2",
+    "rollup-plugin-babel": "^4.3.2"
+  }
+}
