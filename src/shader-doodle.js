@@ -1,8 +1,3 @@
-const htmlDecode = input => {
-  const doc = new DOMParser().parseFromString(input, "text/html");
-  return doc.documentElement.textContent;
-};
-
 const DEFAULT_VS = `
 attribute vec2 position;
 
@@ -43,11 +38,11 @@ class ShaderDoodle extends HTMLElement {
   connectedCallback() {
     this.mounted = true;
     setTimeout(() => {
-      if (!this.innerHTML.trim()) return false;
+      if (!this.textContent.trim()) return false;
       try {
         this.init();
       } catch (e) {
-        this.innerHTML = '';
+        this.textContent = '';
         console.error(e && e.message || 'Error in shader-doodle.');
       }
     });
@@ -64,7 +59,7 @@ class ShaderDoodle extends HTMLElement {
   init() {
     this.useST = this.hasAttribute('shadertoy');
 
-    let fs = htmlDecode(this.innerHTML);
+    let fs = this.textContent;
 
     this.uniforms = {
       resolution: {
