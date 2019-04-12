@@ -176,17 +176,17 @@ class ShaderDoodle extends HTMLElement {
   mouseDown(e) {
     if (this.useST) {
       this.mousedown = true;
-      const { top, left } = this.canvas.getBoundingClientRect();
-      this.uniforms.mouse.value[2] = e.clientX - left;
-      this.uniforms.mouse.value[3] = e.clientY - top;
+      const { top, left, height } = this.rect;
+      this.uniforms.mouse.value[2] = e.clientX - Math.floor(left);
+      this.uniforms.mouse.value[3] = Math.floor(height) - (e.clientY - Math.floor(top));
     }
   }
 
   mouseMove(e) {
     if (!this.ticking && (!this.useST || this.mousedown)) {
-      const { top, left } = this.rect;
+      const { top, left, height } = this.rect;
       this.uniforms.mouse.value[0] = e.clientX - Math.floor(left);
-      this.uniforms.mouse.value[1] = e.clientY - Math.floor(top);
+      this.uniforms.mouse.value[1] = Math.floor(height) - (e.clientY - Math.floor(top));
       this.ticking = true;
     }
   }
