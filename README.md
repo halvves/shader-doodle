@@ -86,7 +86,8 @@ _NOTE: the only functional difference is in mouse position behavior_
 ## See Also
 
 * [shaderpen](https://github.com/halvves/shaderpen/) - This library's predecessor.
-* [The Book of Shaders](https://thebookofshaders.com/) - A gentle step-by-step guide through the abstract and complex universe of Fragment Shaders.
+* [css-doodle](https://github.com/css-doodle/css-doodle) - The inspiration behind rewriting shaderpen as a web-component.
+* [The Book of Shaders](https://thebookofshaders.com/) - A gentle step-by-step guide through the world Fragment Shaders.
 * [Shadertoy](https://www.shadertoy.com/) - Shader playground.
 
 [npm-badge]: https://img.shields.io/npm/v/shader-doodle.svg
