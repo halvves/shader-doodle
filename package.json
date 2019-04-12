@@ -3,7 +3,7 @@
   "description": "A friendly web-component for writing and rendering shaders.",
   "license": "MIT",
   "author": "halvves <hi@halvves.com>",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "dist/shader-doodle.cjs.js",
   "module": "dist/shader-doodle.esm.js",
   "browser": "dist/shader-doodle.umd.js",
