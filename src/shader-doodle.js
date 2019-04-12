@@ -1,3 +1,8 @@
+const htmlDecode = input => {
+  const doc = new DOMParser().parseFromString(input, "text/html");
+  return doc.documentElement.textContent;
+};
+
 const DEFAULT_VS = `
 attribute vec2 position;
 
@@ -59,7 +64,7 @@ class ShaderDoodle extends HTMLElement {
   init() {
     this.useST = this.hasAttribute('shadertoy');
 
-    let fs = this.innerHTML;
+    let fs = htmlDecode(this.innerHTML);
 
     this.uniforms = {
       resolution: {
