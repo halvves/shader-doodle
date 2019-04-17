@@ -1,48 +1,21 @@
-const DEFAULT_VS = `
-attribute vec2 position;
-
-void main() {
-  gl_Position = vec4(position, 0.0, 1.0);
-}`;
-
-const TEMPLATE = document.createElement('template');
-TEMPLATE.innerHTML = `
-<style>
-  :host {
-    position: relative;
-    display: inline-block;
-    width: 250px;
-    height: 250px;
-  }
-  :host > canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    border-radius: inherit;
-   }
-</style>
-`;
+import Template from './template.js';
+import ShaderDoodleBaseTexture from './textures/shader-doodle-basetexture.js';
 
 const SHADERTOY_IO = /\(\s*out\s+vec4\s+(\S+)\s*,\s*in\s+vec2\s+(\S+)\s*\)/;
 
 class ShaderDoodle extends HTMLElement {
   constructor() {
     super();
-
     this.shadow = this.attachShadow({ mode: 'open' });
-    this.shadow.appendChild(TEMPLATE.content.cloneNode(true));
   }
 
   connectedCallback() {
     this.mounted = true;
-    setTimeout(() => {
-      if (!this.textContent.trim()) return false;
+
+    setTimeout( () => {
       try {
         this.init();
       } catch (e) {
-        this.textContent = '';
         console.error(e && e.message || 'Error in shader-doodle.');
       }
     });
@@ -53,13 +26,41 @@ class ShaderDoodle extends HTMLElement {
     this.canvas.removeEventListener('mousedown', this.mouseDown);
     this.canvas.removeEventListener('mousemove', this.mouseMove);
     this.canvas.removeEventListener('mouseup', this.mouseUp);
-    clearAnimationFrame(this.animationFrame);
+    cancelAnimationFrame(this.animationFrame);
+  }
+
+  findShaders() {
+    const shdrs = {};
+    for (let c = 0; c < this.children.length; c++) {
+      switch (this.children[c].getAttribute('type')) {
+        case 'x-shader/x-fragment':
+          shdrs.fragmentShader = this.children[c].text;
+          break;
+
+        case 'x-shader/x-vertex':
+          shdrs.vertexShader = this.children[c].text;
+          break;
+      }
+    }
+    return shdrs;
+  }
+
+  findTextures() {
+    const textures = [];
+    for (let c = 0; c < this.children.length; c++) {
+      if (this.children[c] instanceof ShaderDoodleBaseTexture) {
+        textures.push(this.children[c]);
+      }
+    }
+    return textures;
   }
 
   init() {
+    const shaders = this.findShaders();
     this.useST = this.hasAttribute('shadertoy');
 
-    let fs = this.textContent;
+    let fs = shaders.fragmentShader;
+    let vs = shaders.vertexShader ? shaders.vertexShader : Template.defaultVertexShader();
 
     this.uniforms = {
       resolution: {
@@ -91,13 +92,13 @@ class ShaderDoodle extends HTMLElement {
         name: this.useST ? 'iMouse' : 'u_mouse',
         type: this.useST ? 'vec4' : 'vec2',
         value: this.useST ? [0, 0, 0, 0] : [0, 0],
-      },
+      }
     };
-
-    this.canvas = document.createElement('canvas');
-    this.shadow.appendChild(this.canvas);
+    this.shadow.innerHTML = Template.render();
+    this.canvas = Template.map(this.shadow).canvas;
     const gl = this.gl = this.canvas.getContext('webgl');
     this.updateRect();
+
 
     // format/replace special shadertoy io
     if (this.useST) {
@@ -115,7 +116,7 @@ class ShaderDoodle extends HTMLElement {
 
     gl.clearColor(0, 0, 0, 0);
 
-    this.vertexShader = this.makeShader(gl.VERTEX_SHADER, DEFAULT_VS);
+    this.vertexShader = this.makeShader(gl.VERTEX_SHADER, vs);
     this.fragmentShader = this.makeShader(gl.FRAGMENT_SHADER, fs);
     this.program = this.makeProgram(this.vertexShader, this.fragmentShader);
 
@@ -131,6 +132,12 @@ class ShaderDoodle extends HTMLElement {
     gl.useProgram(this.program);
 
     this.program.position = gl.getAttribLocation(this.program, 'position');
+
+    this.textures = this.findTextures();
+    for (let c = 0; c < this.textures.length; c++) {
+      this.textures[c].glindex = c;
+      this.textures[c].update(gl, this.program);
+    }
     gl.enableVertexAttribArray(this.program.position);
     gl.vertexAttribPointer(this.program.position, 2, gl.FLOAT, false, 0, 0);
 
@@ -156,6 +163,10 @@ class ShaderDoodle extends HTMLElement {
   render(timestamp) {
     if (!this || !this.mounted || !this.gl) return;
     const { gl } = this;
+
+    for (let c = 0; c < this.textures.length; c++) {
+      this.textures[c].update(this.gl, this.program);
+    }
 
     this.updateTimeUniforms(timestamp);
     this.updateRect();
@@ -269,4 +280,6 @@ class ShaderDoodle extends HTMLElement {
   }
 }
 
-customElements.define('shader-doodle', ShaderDoodle);
+if (!customElements.get('shader-doodle')) {
+  customElements.define('shader-doodle', ShaderDoodle);
+}
