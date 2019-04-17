@@ -5,10 +5,15 @@ export default class ShaderDoodleBaseTexture extends HTMLElement {
 
     constructor() {
       super();
+      // TODO:
+      // Didn't have time to come up with a proper backup texture...
+      // Tried a UintArray like here: https://webglfundamentals.org/webgl/lessons/webgl-data-textures.html,
+      // but it didn't work
       this._backupTexture = document.createElement('img');
-      this._backupTexture.src = 'food.jpg';
+      this._backupTexture.src = 'sampleimage.jpg';
     }
 
+    // TODO: Hard coded widths and heights aren't good
     get width() {
       return 640;
     }
