@@ -29,6 +29,10 @@ class ShaderDoodleCamtex extends BaseTexture {
 
   onCameraStream(stream) {
     this.video.srcObject = stream;
+    this.video.onloadedmetadata = e => {
+      this._width = this.video.videoWidth;
+      this._height = this.video.videoHeight;
+    };
     this.video.addEventListener('playing', () => {
       if ( this.video.readyState == 4 ) {
         this._ready = true;

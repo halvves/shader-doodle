@@ -5,21 +5,17 @@ export default class ShaderDoodleBaseTexture extends HTMLElement {
 
     constructor() {
       super();
-      // TODO:
-      // Didn't have time to come up with a proper backup texture...
-      // Tried a UintArray like here: https://webglfundamentals.org/webgl/lessons/webgl-data-textures.html,
-      // but it didn't work
-      this._backupTexture = document.createElement('img');
-      this._backupTexture.src = 'sampleimage.jpg';
+      this._backupTexture = new Uint8Array([0, 0, 0, 255]);
+      this._height = 0;
+      this._width = 0;
     }
 
-    // TODO: Hard coded widths and heights aren't good
     get width() {
-      return 640;
+      return this._width;
     }
 
     get height() {
-      return 480;
+      return this._height;
     }
 
     get shouldUpdate() {
@@ -60,7 +56,12 @@ export default class ShaderDoodleBaseTexture extends HTMLElement {
       this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_WRAP_T, this._gl.CLAMP_TO_EDGE);
       this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MIN_FILTER, this._gl.NEAREST);
       this._gl.texParameteri(this._gl.TEXTURE_2D, this._gl.TEXTURE_MAG_FILTER, this._gl.NEAREST);
-      this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, tex);
+
+      if (tex === this._backupTexture) {
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, 1, 1, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, tex);
+      } else {
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, tex);
+      }
 
       this._initialized = true;
       this.update(gl, program);
@@ -76,11 +77,20 @@ export default class ShaderDoodleBaseTexture extends HTMLElement {
         return;
       }
 
-      let tex = this.isReady ? this.texture : this._backupTexture;
       if (this.shouldUpdate) {
-        this._gl.activeTexture(this._gl['TEXTURE' + this.glindex]);
-        this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTex);
-        this._gl.texSubImage2D(this._gl.TEXTURE_2D, 0, 0, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, tex);
+        this._update();
+      }
+    }
+
+    _update() {
+      if (!this._initialized) { return; }
+      this._gl.activeTexture(this._gl['TEXTURE' + this.glindex]);
+      this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTex);
+      let tex = this.isReady ? this.texture : this._backupTexture;
+      if (tex === this._backupTexture) {
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, 1, 1, 0, this._gl.RGBA, this._gl.UNSIGNED_BYTE, tex);
+      } else {
+        this._gl.texImage2D(this._gl.TEXTURE_2D, 0, this._gl.RGBA, this._gl.RGBA, this._gl.UNSIGNED_BYTE, tex);
       }
     }
 }
