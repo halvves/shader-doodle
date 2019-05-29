@@ -6,8 +6,8 @@ export default {
 
   map(scope) {
     return {
-      video: scope.querySelector('video')
-    }
+      video: scope.querySelector('video'),
+    };
   },
 
   html(node) {
@@ -25,5 +25,5 @@ export default {
         height: 480px;
       }
     </style>`;
-  }
-}
+  },
+};

@@ -5,7 +5,7 @@ export default {
   },
 
   defaultVertexShader() {
-      return `attribute vec2 position;
+    return `attribute vec2 position;
               
               void main() {
                 gl_Position = vec4(position, 0.0, 1.0);
@@ -14,12 +14,12 @@ export default {
 
   map(scope) {
     return {
-      canvas: scope.querySelector('canvas')
-    }
+      canvas: scope.querySelector('canvas'),
+    };
   },
 
   html(node) {
-    return  `<canvas></canvas>`;
+    return `<canvas></canvas>`;
   },
 
   css() {
@@ -39,5 +39,5 @@ export default {
         border-radius: inherit;
        }
     </style>`;
-  }
-}
+  },
+};
