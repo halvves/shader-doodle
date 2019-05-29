@@ -12,11 +12,11 @@ class ShaderDoodle extends HTMLElement {
   connectedCallback() {
     this.mounted = true;
 
-    setTimeout( () => {
+    setTimeout(() => {
       try {
         this.init();
       } catch (e) {
-        console.error(e && e.message || 'Error in shader-doodle.');
+        console.error((e && e.message) || 'Error in shader-doodle.');
       }
     });
   }
@@ -60,7 +60,9 @@ class ShaderDoodle extends HTMLElement {
     this.useST = this.hasAttribute('shadertoy');
 
     let fs = shaders.fragmentShader;
-    let vs = shaders.vertexShader ? shaders.vertexShader : Template.defaultVertexShader();
+    let vs = shaders.vertexShader
+      ? shaders.vertexShader
+      : Template.defaultVertexShader();
 
     this.uniforms = {
       resolution: {
@@ -92,25 +94,28 @@ class ShaderDoodle extends HTMLElement {
         name: this.useST ? 'iMouse' : 'u_mouse',
         type: this.useST ? 'vec4' : 'vec2',
         value: this.useST ? [0, 0, 0, 0] : [0, 0],
-      }
+      },
     };
     this.shadow.innerHTML = Template.render();
     this.canvas = Template.map(this.shadow).canvas;
-    const gl = this.gl = this.canvas.getContext('webgl');
+    const gl = (this.gl = this.canvas.getContext('webgl'));
     this.updateRect();
-
 
     // format/replace special shadertoy io
     if (this.useST) {
       const io = fs.match(SHADERTOY_IO);
       fs = fs.replace('mainImage', 'main');
       fs = fs.replace(SHADERTOY_IO, '()');
-      fs = (io ? `#define ${io[1]} gl_FragColor\n#define ${io[2]} gl_FragCoord.xy\n` : '') + fs;
+      fs =
+        (io
+          ? `#define ${io[1]} gl_FragColor\n#define ${io[2]} gl_FragCoord.xy\n`
+          : '') + fs;
     }
 
-    const uniformString = Object
-      .values(this.uniforms)
-      .reduce((acc, uniform) => (acc + `uniform ${uniform.type} ${uniform.name};\n`), '');
+    const uniformString = Object.values(this.uniforms).reduce(
+      (acc, uniform) => acc + `uniform ${uniform.type} ${uniform.name};\n`,
+      ''
+    );
     fs = uniformString + fs;
     fs = 'precision highp float;\n' + fs;
 
@@ -120,6 +125,7 @@ class ShaderDoodle extends HTMLElement {
     this.fragmentShader = this.makeShader(gl.FRAGMENT_SHADER, fs);
     this.program = this.makeProgram(this.vertexShader, this.fragmentShader);
 
+    // prettier-ignore
     this.vertices = new Float32Array([
       -1, 1, 1, 1, 1, -1,
       -1, 1, 1, -1, -1, -1,
@@ -146,12 +152,7 @@ class ShaderDoodle extends HTMLElement {
       uniform.location = gl.getUniformLocation(this.program, uniform.name);
     });
 
-    this._bind(
-      'mouseDown',
-      'mouseMove',
-      'mouseUp',
-      'render',
-    );
+    this._bind('mouseDown', 'mouseMove', 'mouseUp', 'render');
 
     this.canvas.addEventListener('mousedown', this.mouseDown);
     this.canvas.addEventListener('mousemove', this.mouseMove);
@@ -174,7 +175,9 @@ class ShaderDoodle extends HTMLElement {
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     Object.values(this.uniforms).forEach(({ type, location, value }) => {
-      const method = type.match(/vec/) ? `${type[type.length - 1]}fv` : `1${type[0]}`;
+      const method = type.match(/vec/)
+        ? `${type[type.length - 1]}fv`
+        : `1${type[0]}`;
       gl[`uniform${method}`](location, value);
     });
 
@@ -189,7 +192,8 @@ class ShaderDoodle extends HTMLElement {
       this.mousedown = true;
       const { top, left, height } = this.rect;
       this.uniforms.mouse.value[2] = e.clientX - Math.floor(left);
-      this.uniforms.mouse.value[3] = Math.floor(height) - (e.clientY - Math.floor(top));
+      this.uniforms.mouse.value[3] =
+        Math.floor(height) - (e.clientY - Math.floor(top));
     }
   }
 
@@ -197,7 +201,8 @@ class ShaderDoodle extends HTMLElement {
     if (!this.ticking && (!this.useST || this.mousedown)) {
       const { top, left, height } = this.rect;
       this.uniforms.mouse.value[0] = e.clientX - Math.floor(left);
-      this.uniforms.mouse.value[1] = Math.floor(height) - (e.clientY - Math.floor(top));
+      this.uniforms.mouse.value[1] =
+        Math.floor(height) - (e.clientY - Math.floor(top));
       this.ticking = true;
     }
   }
@@ -211,7 +216,7 @@ class ShaderDoodle extends HTMLElement {
   }
 
   updateTimeUniforms(timestamp) {
-    const delta = this.lastTime ? ((timestamp - this.lastTime) / 1000) : 0;
+    const delta = this.lastTime ? (timestamp - this.lastTime) / 1000 : 0;
     this.lastTime = timestamp;
 
     this.uniforms.time.value += delta;
@@ -222,7 +227,11 @@ class ShaderDoodle extends HTMLElement {
     this.uniforms.date.value[0] = d.getFullYear();
     this.uniforms.date.value[1] = d.getMonth() + 1;
     this.uniforms.date.value[2] = d.getDate();
-    this.uniforms.date.value[3] = d.getHours() * 60 * 60 + d.getMinutes() * 60 + d.getSeconds() + d.getMilliseconds() * 0.001;
+    this.uniforms.date.value[3] =
+      d.getHours() * 60 * 60 +
+      d.getMinutes() * 60 +
+      d.getSeconds() +
+      d.getMilliseconds() * 0.001;
   }
 
   updateRect() {
@@ -276,7 +285,7 @@ class ShaderDoodle extends HTMLElement {
   }
 
   _bind(...methods) {
-    methods.forEach((method) => this[method] = this[method].bind(this));
+    methods.forEach(method => (this[method] = this[method].bind(this)));
   }
 }
 
