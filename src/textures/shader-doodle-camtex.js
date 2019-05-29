@@ -23,8 +23,9 @@ class ShaderDoodleCamtex extends BaseTexture {
   }
 
   connectedCallback() {
-    navigator.mediaDevices.getUserMedia({ audio: false, video: true })
-      .then( stream => this.onCameraStream(stream));
+    navigator.mediaDevices
+      .getUserMedia({ audio: false, video: true })
+      .then(stream => this.onCameraStream(stream));
   }
 
   onCameraStream(stream) {
@@ -34,12 +35,12 @@ class ShaderDoodleCamtex extends BaseTexture {
       this._height = this.video.videoHeight;
     };
     this.video.addEventListener('playing', () => {
-      if ( this.video.readyState == 4 ) {
+      if (this.video.readyState == 4) {
         this._ready = true;
         this._initialized = false;
       }
     });
-  };
+  }
 }
 
 if (!customElements.get('shader-doodle-camtex')) {
