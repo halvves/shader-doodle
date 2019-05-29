@@ -3,11 +3,6 @@
   "description": "A friendly web-component for writing and rendering shaders.",
   "license": "MIT",
   "author": "halvves <hi@halvves.com>",
-  "version": "0.0.5",
-  "main": "dist/shader-doodle.cjs.js",
-  "module": "dist/shader-doodle.esm.js",
-  "browser": "dist/shader-doodle.umd.js",
-  "unpkg": "dist/shader-doodle.umd.js",
   "homepage": "https://github.com/halvves/shader-doodle",
   "repository": {
     "type": "git",
@@ -16,26 +11,42 @@
   "bugs": {
     "url": "https://github.com/halvves/shader-doodle/issues"
   },
+  "version": "0.0.5",
+  "main": "dist/shader-doodle.cjs.js",
+  "module": "dist/shader-doodle.esm.js",
+  "browser": "dist/shader-doodle.umd.js",
   "files": [
     "dist"
   ],
-  "keywords": [
-    "WebGL",
-    "shadertoy",
-    "glsl",
-    "3d",
-    "canvas",
-    "shader-doodle",
-    "web-components"
-  ],
   "scripts": {
-    "prepublishOnly": "npm run build",
     "build": "rollup -c",
+    "precommit": "lint-staged",
     "dev": "rollup -c -w",
+    "prepublishOnly": "npm run build",
     "pretty": "npm run pretty-src -- \"src/**/*.js\" && npm run pretty-pkg",
     "pretty-pkg": "prettier-package-json --write ./package.json",
     "pretty-src": "prettier --write"
   },
+  "devDependencies": {
+    "@ampproject/rollup-plugin-closure-compiler": "^0.8.5",
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.3.1",
+    "husky": "^2.3.0",
+    "lint-staged": "^8.1.7",
+    "prettier": "^1.16.4",
+    "prettier-package-json": "^2.0.1",
+    "rollup": "^1.1.2",
+    "rollup-plugin-babel": "^4.3.2"
+  },
+  "keywords": [
+    "3d",
+    "WebGL",
+    "canvas",
+    "glsl",
+    "shader-doodle",
+    "shadertoy",
+    "web-components"
+  ],
   "babel": {
     "presets": [
       [
@@ -68,15 +79,5 @@
     "tabWidth": 2,
     "trailingComma": "es5"
   },
-  "devDependencies": {
-    "@ampproject/rollup-plugin-closure-compiler": "^0.8.5",
-    "@babel/core": "^7.2.2",
-    "@babel/preset-env": "^7.3.1",
-    "husky": "^1.3.1",
-    "lint-staged": "^8.1.3",
-    "prettier": "^1.16.4",
-    "prettier-package-json": "^2.0.1",
-    "rollup": "^1.1.2",
-    "rollup-plugin-babel": "^4.3.2"
-  }
+  "unpkg": "dist/shader-doodle.umd.js"
 }

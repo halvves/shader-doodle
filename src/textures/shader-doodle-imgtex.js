@@ -29,7 +29,7 @@ class ShaderDoodleImgTexture extends BaseTexture {
       this._width = e.target.width;
       this._height = e.target.height;
       this._update(); // handle attribute src changes at any time
-    }
+    };
   }
 
   get texture() {

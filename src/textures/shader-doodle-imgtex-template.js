@@ -6,8 +6,8 @@ export default {
 
   map(scope) {
     return {
-      img: scope.querySelector('img')
-    }
+      img: scope.querySelector('img'),
+    };
   },
 
   html(node) {
@@ -25,5 +25,5 @@ export default {
         height: 480px;
       }
     </style>`;
-  }
-}
+  },
+};
