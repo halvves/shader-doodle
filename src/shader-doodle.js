@@ -1,11 +1,13 @@
 import Template from './template.js';
-import ShaderDoodleBaseTexture from './textures/shader-doodle-basetexture.js';
+import Texture from './sd-texture.js';
 
 const SHADERTOY_IO = /\(\s*out\s+vec4\s+(\S+)\s*,\s*in\s+vec2\s+(\S+)\s*\)/;
+const UNNAMED_TEXTURE_PREFIX = 'u_texture_';
 
 class ShaderDoodle extends HTMLElement {
   constructor() {
     super();
+    this.unnamedTextureIndex = 0;
     this.shadow = this.attachShadow({ mode: 'open' });
   }
 
@@ -48,7 +50,7 @@ class ShaderDoodle extends HTMLElement {
   findTextures() {
     const textures = [];
     for (let c = 0; c < this.children.length; c++) {
-      if (this.children[c] instanceof ShaderDoodleBaseTexture) {
+      if (this.children[c] instanceof Texture) {
         textures.push(this.children[c]);
       }
     }
@@ -140,10 +142,13 @@ class ShaderDoodle extends HTMLElement {
     this.program.position = gl.getAttribLocation(this.program, 'position');
 
     this.textures = this.findTextures();
-    for (let c = 0; c < this.textures.length; c++) {
-      this.textures[c].glindex = c;
-      this.textures[c].update(gl, this.program);
-    }
+    this.textures.forEach((t, i) => {
+      // set texture name to 'u_texture_XX' if no name set
+      if (!t.name) {
+        t.name = `${UNNAMED_TEXTURE_PREFIX}${this.unnamedTextureIndex++}`;
+      }
+      t.init(gl, this.program, i);
+    });
     gl.enableVertexAttribArray(this.program.position);
     gl.vertexAttribPointer(this.program.position, 2, gl.FLOAT, false, 0, 0);
 
@@ -165,9 +170,9 @@ class ShaderDoodle extends HTMLElement {
     if (!this || !this.mounted || !this.gl) return;
     const { gl } = this;
 
-    for (let c = 0; c < this.textures.length; c++) {
-      this.textures[c].update(this.gl, this.program);
-    }
+    this.textures.forEach(t => {
+      t.update();
+    });
 
     this.updateTimeUniforms(timestamp);
     this.updateRect();
