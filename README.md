@@ -7,6 +7,8 @@
 
 ![demo](screenshot/ex.gif)
 
+NOTE: this README and branch are for the new `<shader-doodle />` alpha. To view the current stable version go to the [v0 branch](https://github.com/halvves/shader-doodle/tree/v0).
+
 `<shader-doodle />` is a simple web-component loosely based on the [The Book of Shaders](https://thebookofshaders.com/)'s glsl previewer and [Shadertoy](https://www.shadertoy.com/). It sets up a flat responsive canvas on which to draw fragment shaders, and provides several built in uniforms relating to time, resolution, mouse position, etc.
 
 ## Usage
@@ -16,12 +18,14 @@
 ```html
 <script src="https://unpkg.com/shader-doodle"></script>
 <shader-doodle>
-  void main() {
-    vec2 st = gl_FragCoord.xy / u_resolution.xy;
-    vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+  <script type="x-shader/x-fragment">
+    void main() {
+      vec2 st = gl_FragCoord.xy / u_resolution.xy;
+      vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
 
-    gl_FragColor = vec4(color, 1.0);
-  }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  </script>
 </shader-doodle>
 ```
 
@@ -35,12 +39,14 @@ import 'shader-doodle';
 
 ```html
 <shader-doodle>
-  void main() {
-    vec2 st = gl_FragCoord.xy / u_resolution.xy;
-    vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+  <script type="x-shader/x-fragment">
+    void main() {
+      vec2 st = gl_FragCoord.xy / u_resolution.xy;
+      vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
 
-    gl_FragColor = vec4(color, 1.0);
-  }
+      gl_FragColor = vec4(color, 1.0);
+    }
+  </script>
 </shader-doodle>
 ```
 
@@ -75,13 +81,11 @@ _NOTE: the only functional difference is in mouse position behavior_
 * shader precision attribute
 * clearColor attribute
 * touch support for mouse uniform
-* texture attribute
-* video for texture attribute
-* webcam for texture attribute
 * uniforms for device orientation & gyro
 * lerp attribute for mouse
-* custom uniforms attribute
-* custom vertex shader attribute
+* custom uniform component
+* webgl2
+* api for multi-pass?
 
 ## See Also
 
