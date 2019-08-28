@@ -16,7 +16,7 @@ NOTE: this README and branch are for the new `<shader-doodle />` alpha. To view 
 ### Script Include
 
 ```html
-<script src="https://unpkg.com/shader-doodle"></script>
+<script src="https://unpkg.com/shader-doodle@1.0.0-alpha.0/"></script>
 <shader-doodle>
   <script type="x-shader/x-fragment">
     void main() {
@@ -31,7 +31,7 @@ NOTE: this README and branch are for the new `<shader-doodle />` alpha. To view 
 
 ### Import
 
-`npm install shader-doodle`
+`npm install shader-doodle@alpha`
 
 ```javascript
 import 'shader-doodle';
