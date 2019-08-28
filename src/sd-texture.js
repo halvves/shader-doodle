@@ -253,9 +253,19 @@ export default class Texture extends HTMLElement {
     this._source.autoplay = true;
     this._source.muted = true;
     this._source.loop = true;
+    this._source.playsInline = true;
     this._source.crossOrigin = 'anonymous';
-
     this._source.src = this.src;
+
+    const wrapper = document.createElement('div');
+    wrapper.style.width = wrapper.style.height = '1px';
+    wrapper.style.overflow = 'hidden';
+    wrapper.style.position = 'absolute';
+    wrapper.style.opacity = '0';
+    wrapper.style.pointerEvents = 'none';
+    wrapper.style.zIndex = '-1000';
+    wrapper.appendChild(this._source);
+    document.body.appendChild(wrapper);
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -294,12 +304,12 @@ export default class Texture extends HTMLElement {
     };
 
     const initLegacy = () => {
-      navigator.getUserMedia({ video: true }, start, e => e);
+      getUserMedia({ video: true }, start, e => e);
     };
 
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       init();
-    } else if (navigator.getUserMedia) {
+    } else if (getUserMedia) {
       initLegacy();
     }
   }
