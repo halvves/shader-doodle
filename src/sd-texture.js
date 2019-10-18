@@ -131,6 +131,8 @@ export default class Texture extends HTMLElement {
       this._setupVideo();
     } else if (isImage(this.src)) {
       this._setupImage();
+    } else {
+      this._setupCanvasImage(this.src)
     }
   }
 
@@ -180,6 +182,14 @@ export default class Texture extends HTMLElement {
         PIXEL
       );
     }
+  }
+
+  _setupCanvasImage(id) {
+    const canvas = document.querySelector(id)
+    if (canvas) {
+      this.src = canvas.toDataURL()
+    }
+    this._setupImage()
   }
 
   _setupImage() {
