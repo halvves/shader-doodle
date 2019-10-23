@@ -27,19 +27,15 @@
     "pretty-pkg": "prettier-package-json --write ./package.json",
     "pretty-src": "prettier --write"
   },
-  "dependencies": {
-    "core-js": "^3.3.3",
-    "regenerator-runtime": "^0.13.3"
-  },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "^0.8.5",
-    "@babel/core": "^7.2.2",
-    "@babel/preset-env": "^7.3.1",
-    "husky": "^2.3.0",
+    "@babel/core": "^7.6.4",
+    "@babel/preset-env": "^7.6.3",
+    "husky": "^2.7.0",
     "lint-staged": "^8.2.1",
-    "prettier": "^1.16.4",
+    "prettier": "^1.18.2",
     "prettier-package-json": "^2.0.1",
-    "rollup": "^1.1.2",
+    "rollup": "^1.25.2",
     "rollup-plugin-babel": "^4.3.3"
   },
   "keywords": [
@@ -58,8 +54,13 @@
         {
           "targets": {
             "browsers": [
-              "last 2 versions",
-              "safari >= 7"
+              "last 2 Chrome versions",
+              "last 2 ChromeAndroid versions",
+              "last 2 Safari versions",
+              "last 2 iOS versions",
+              "last 2 Firefox versions",
+              "last 2 FirefoxAndroid versions",
+              "last 2 Edge versions"
             ]
           },
           "modules": false
