@@ -27,6 +27,10 @@
     "pretty-pkg": "prettier-package-json --write ./package.json",
     "pretty-src": "prettier --write"
   },
+  "dependencies": {
+    "core-js": "^3.3.3",
+    "regenerator-runtime": "^0.13.3"
+  },
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "^0.8.5",
     "@babel/core": "^7.2.2",
