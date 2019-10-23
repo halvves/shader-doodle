@@ -1,3 +1,6 @@
+import 'core-js/stable';
+import 'regenerator-runtime/runtime';
+
 import Template from './template.js';
 import Texture from './sd-texture.js';
 
