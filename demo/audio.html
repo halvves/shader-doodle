@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <script type="module" src="../src/sd-audio.js"></script>
+    <style>
+      body {
+        display: flex;
+        height: 100vh;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        margin: 0;
+        padding: 0;
+      }
+      shader-doodle {
+        display: block;
+        width: 100vw;
+        height: 0;
+        padding-bottom: 56.25%;
+      }
+      .credit {
+        z-index: 1;
+        position: fixed;
+        top: 8px;
+        left: 8px;
+        color: #fff;
+        font-family: sans-serif;
+      }
+      a:hover,
+      a:link,
+      a:visited,
+      a:active {
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <shader-doodle>
+      <sd-audio src="./audio.mp3" autoplay loop></sd-audio>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_audio0;
+
+        float amplitude(sampler2D audio, float f) {
+          return texture2D(audio, vec2(f, .25)).x;
+        }
+
+        float wave(sampler2D audio, float t) {
+          return texture2D(audio, vec2(t, .75)).x;
+        }
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+
+          float w = wave(u_audio0, uv.x);
+          float a = amplitude(u_audio0, abs(.5 - uv.y) / w);
+
+          vec3 color = vec3(a * .5, (1. - a), 5. * a * (1. - a)) * a;
+          color.rb += (1. - smoothstep(.0, .1, abs(w - uv.y))) * a;
+
+          gl_FragColor = vec4(color, 1.);
+        }
+      </script>
+    </shader-doodle>
+    <div class="credit">music by: <a href="https://bodyorigami.bandcamp.com/album/bright-and-only-mine" target="_blank">body origami</a></div>
+  </body>
+</html>
