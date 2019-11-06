@@ -1,3 +1,6 @@
+import SDBaseElement from './sd-base.js';
+import Texture from './Texture.js';
+
 const CAMERA = 'camera';
 const IMAGE = 'image';
 const VIDEO = 'video';
@@ -32,8 +35,6 @@ const WRAP_OPTIONS = {
   CLAMP_TO_EDGE,
 };
 
-const PIXEL = new Uint8Array([0, 0, 0, 255]);
-
 const IMG_REG = /(\.jpg|\.jpeg|\.png|\.gif|\.bmp)$/i;
 const isImage = s => IMG_REG.test(s);
 const VID_REG = /(\.mp4|\.3gp|\.webm|\.ogv)$/i;
@@ -42,7 +43,11 @@ const isVideo = s => VID_REG.test(s);
 const floorPowerOfTwo = value => 2 ** Math.floor(Math.log(value) / Math.LN2);
 const isPow2 = value => !(value & (value - 1)) && !!value;
 
-export default class Texture extends HTMLElement {
+const UNNAMED_TEXTURE_PREFIX = 'u_texture';
+
+let unnamedTextureIndex = 0;
+
+class TextureElement extends SDBaseElement {
   static get observedAttributes() {
     return ['mag-filter', 'min-filter', 'name', 'src', 'wrap-s', 'wrap-t'];
   }
@@ -54,10 +59,6 @@ export default class Texture extends HTMLElement {
 
   disconnectedCallback() {
     // DELETE TEXTURE
-  }
-
-  get flipY() {
-    return true;
   }
 
   get magFilter() {
@@ -112,16 +113,15 @@ export default class Texture extends HTMLElement {
     return WRAP_OPTIONS[this.getAttribute('wrap-t')] || REPEAT;
   }
 
-  init(gl, program, index) {
-    this._gl = gl;
-    this._program = program;
-    this._index = index;
+  init() {
+    const { gl, program } = this._sd;
 
-    this._glTexture = this._gl.createTexture();
-    this._gl.bindTexture(this._gl.TEXTURE_2D, this._glTexture);
-    this._setTexture();
+    if (!this.name) {
+      this.name = `${UNNAMED_TEXTURE_PREFIX}${unnamedTextureIndex++}`;
+    }
 
-    this._location = this._gl.getUniformLocation(this._program, this.name);
+    this._location = gl.getUniformLocation(program, this.name);
+    this._texture = new Texture(gl);
 
     if (!this.src && !this.webcam) return;
 
@@ -132,64 +132,23 @@ export default class Texture extends HTMLElement {
     } else if (isImage(this.src)) {
       this._setupImage();
     } else {
-      this._setupCanvasImage(this.src)
+      this._setupCanvasImage();
     }
   }
 
   update() {
-    const { _gl: gl, _glTexture: texture, _index: index } = this;
-    if (!gl || !texture || typeof index !== 'number') return;
-
-    gl.activeTexture(gl[`TEXTURE${index}`]);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.uniform1i(this._location, index);
-    if (this.shouldUpdate) {
-      this._updateTexture();
-    }
+    this._texture.toUniform(
+      this._location,
+      this.shouldUpdate ? { pixels: this._source } : null
+    );
   }
 
-  _setTexture(texture) {
-    const { _gl: gl } = this;
-    if (!gl) return;
-
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const width = 1;
-    const height = 1;
-    const border = 0;
-    const srcFormat = gl.RGBA;
-    const srcType = gl.UNSIGNED_BYTE;
-
-    if (texture) {
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        level,
-        internalFormat,
-        srcFormat,
-        srcType,
-        texture
-      );
-    } else {
-      gl.texImage2D(
-        gl.TEXTURE_2D,
-        level,
-        internalFormat,
-        width,
-        height,
-        border,
-        srcFormat,
-        srcType,
-        PIXEL
-      );
+  _setupCanvasImage() {
+    const canvas = document.querySelector(this.src);
+    if (canvas instanceof HTMLCanvasElement) {
+      this.src = canvas.toDataURL();
+      this._setupImage();
     }
-  }
-
-  _setupCanvasImage(id) {
-    const canvas = document.querySelector(id)
-    if (canvas) {
-      this.src = canvas.toDataURL()
-    }
-    this._setupImage()
   }
 
   _setupImage() {
@@ -204,7 +163,8 @@ export default class Texture extends HTMLElement {
   }
 
   _imageOnload() {
-    const { _gl: gl, _source: img } = this;
+    const { _source: img } = this;
+    const { gl } = this._sd;
     if (
       !gl ||
       !img ||
@@ -241,7 +201,7 @@ export default class Texture extends HTMLElement {
       isPowerOf2 = true;
     }
 
-    this._updateTexture();
+    this._texture.update({ pixels: this._source });
 
     if (isPowerOf2 && this.minFilter !== NEAREST && this.minFilter !== LINEAR) {
       gl.generateMipmap(gl.TEXTURE_2D);
@@ -254,7 +214,7 @@ export default class Texture extends HTMLElement {
   }
 
   _setupVideo() {
-    const { _gl: gl } = this;
+    const { gl } = this._sd;
     if (!gl) return;
 
     this.type = VIDEO;
@@ -285,7 +245,7 @@ export default class Texture extends HTMLElement {
   }
 
   _setupCamera() {
-    const { _gl: gl } = this;
+    const { gl } = this._sd;
     if (!gl) return;
 
     this.type = CAMERA;
@@ -323,17 +283,10 @@ export default class Texture extends HTMLElement {
       initLegacy();
     }
   }
-
-  _updateTexture() {
-    const { _gl: gl, _glTexture: texture, _source: source } = this;
-    if (!gl || !texture || !source) return;
-
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, this.flipY);
-    this._setTexture(source);
-  }
 }
 
 if (!customElements.get('sd-texture')) {
-  customElements.define('sd-texture', Texture);
+  customElements.define('sd-texture', TextureElement);
 }
+
+export default TextureElement;
