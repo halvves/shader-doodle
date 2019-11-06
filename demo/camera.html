@@ -10,7 +10,7 @@
     <shader-doodle>
       <sd-texture webcam></sd-texture>
       <script type="x-shader/x-fragment">
-        uniform sampler2D u_texture_0;
+        uniform sampler2D u_texture0;
 
         const float threshold = 0.4;
         const vec4 SEA = vec4(0.635, 0.8, 0.714, 1.0);
@@ -19,7 +19,7 @@
 
         void main() {
           vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-          vec4 tex = texture2D(u_texture_0, uv);
+          vec4 tex = texture2D(u_texture0, uv);
           float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
 
           if (lum < threshold) {
