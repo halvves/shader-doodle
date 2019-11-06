@@ -10,12 +10,12 @@
     <shader-doodle>
       <sd-texture src="image.jpg"></sd-texture>
       <script type="x-shader/x-fragment">
-        uniform sampler2D u_texture_0;
+        uniform sampler2D u_texture0;
 
         void main() {
           vec2 uv = gl_FragCoord.xy / u_resolution.xy;
           float distortion = sin(uv.y * 50.0 + u_time * 5.0) * 0.01;
-          vec4 texture = texture2D(u_texture_0, vec2(
+          vec4 texture = texture2D(u_texture0, vec2(
             uv.x + distortion * u_mouse.x / 100.,
             uv.y + distortion * u_mouse.y / 100.
           ));
