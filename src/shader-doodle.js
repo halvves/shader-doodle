@@ -1,5 +1,7 @@
 import Template from './template.js';
 import SDBaseElement from './sd-base.js';
+import './sd-audio.js';
+import './sd-texture.js';
 
 const SHADERTOY_IO = /\(\s*out\s+vec4\s+(\S+)\s*,\s*in\s+vec2\s+(\S+)\s*\)/;
 
