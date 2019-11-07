@@ -61,11 +61,12 @@ class SDAudioElement extends SDBaseElement {
     const { _audioElement: elem } = this;
 
     return (
-      elem &&
-      elem.readyState > 2 &&
-      !elem.paused &&
-      !elem.ended &&
-      elem.currentTime
+      this._isFile ||
+      (elem &&
+        elem.readyState > 2 &&
+        !elem.paused &&
+        !elem.ended &&
+        elem.currentTime)
     );
   }
 
@@ -146,6 +147,7 @@ class SDAudioElement extends SDBaseElement {
     }
   }
 
+  /* TODO: maybe re-instate when the ios13 issue has answers
   _setupAudioFile() {
     const { canvas, wa } = this._sd;
     const audio = (this._audioElement = new Audio());
@@ -155,8 +157,48 @@ class SDAudioElement extends SDBaseElement {
     audio.src = this.src;
     this._source = wa.createMediaElementSource(audio);
     audio.load();
-    canvas.addEventListener('click', () => {
-      audio.play();
+
+    if (this.autoplay) {
+      wa.onStart(() => audio.play());
+    }
+  }
+  */
+
+  /* i don't like it but its the only way to get this working in ios13 */
+  async _setupAudioFile() {
+    const { wa } = this._sd;
+    this._source = wa.createBufferSource();
+    this._source.buffer = await this._decodeAudioBuffer(
+      await this._fetchAudioBuffer(this.src)
+    );
+    this._source.loop = this.loop;
+    this._source.start();
+    this._isFile = true;
+  }
+
+  _fetchAudioBuffer(url) {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'arraybuffer';
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200 || xhr.status === 206) {
+            resolve(xhr.response);
+          } else {
+            console.log(xhr);
+            reject(xhr.status);
+          }
+        }
+      };
+      xhr.send();
+    });
+  }
+
+  _decodeAudioBuffer(buf) {
+    const { wa } = this._sd;
+    return new Promise((resolve, reject) => {
+      wa.decodeAudioData(buf, resolve, reject);
     });
   }
 }

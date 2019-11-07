@@ -1,3 +1,4 @@
+import AudioContextResume from './AudioContextResume.js';
 import Template from './template.js';
 import SDBaseElement from './sd-base.js';
 import './sd-audio.js';
@@ -130,9 +131,7 @@ class ShaderDoodleElement extends HTMLElement {
     const gl = (this._sd.gl = canvas.getContext('webgl'));
 
     this._sd.wa = new (window.AudioContext || window.webkitAudioContext)();
-    canvas.addEventListener('click', () => {
-      this._sd.wa.resume();
-    });
+    this._sd.wa.onStart = new AudioContextResume(this._sd.wa, canvas).onStart;
 
     this.updateRect();
 
