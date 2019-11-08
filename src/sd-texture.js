@@ -55,6 +55,7 @@ class TextureElement extends SDBaseElement {
   constructor() {
     super();
     this._imageOnload = this._imageOnload.bind(this);
+    this._resolutionUniform = [0, 0];
   }
 
   disconnectedCallback() {
@@ -120,7 +121,11 @@ class TextureElement extends SDBaseElement {
       this.name = `${UNNAMED_TEXTURE_PREFIX}${unnamedTextureIndex++}`;
     }
 
-    this._location = gl.getUniformLocation(program, this.name);
+    this._textureLocation = gl.getUniformLocation(program, this.name);
+    this._resolutionLocation = gl.getUniformLocation(
+      program,
+      this.name + '_resolution'
+    );
     this._texture = new Texture(gl);
 
     if (!this.src && !this.webcam) return;
@@ -137,10 +142,12 @@ class TextureElement extends SDBaseElement {
   }
 
   update() {
+    const { gl } = this._sd;
     this._texture.toUniform(
-      this._location,
+      this._textureLocation,
       this.shouldUpdate ? { pixels: this._source } : null
     );
+    gl.uniform2fv(this._resolutionLocation, this._resolutionUniform);
   }
 
   _setupCanvasImage() {
@@ -192,15 +199,14 @@ class TextureElement extends SDBaseElement {
       ctx.drawImage(img, 0, 0, this.pow2canvas.width, this.pow2canvas.height);
 
       console.warn(
-        `Image is not power of two ${img.width} x ${img.height}. Resized to ${
-          this.pow2canvas.width
-        } x ${this.pow2canvas.height};`
+        `Image is not power of two ${img.width} x ${img.height}. Resized to ${this.pow2canvas.width} x ${this.pow2canvas.height};`
       );
 
       this._source = this.pow2canvas;
       isPowerOf2 = true;
     }
 
+    this._updateResolution();
     this._texture.update({ pixels: this._source });
 
     if (isPowerOf2 && this.minFilter !== NEAREST && this.minFilter !== LINEAR) {
@@ -241,6 +247,7 @@ class TextureElement extends SDBaseElement {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
+    this._updateResolution();
     this._source.play();
   }
 
@@ -260,6 +267,7 @@ class TextureElement extends SDBaseElement {
       this._source.height = 240;
       this._source.autoplay = true;
       this._source.srcObject = stream;
+      this._updateResolution();
 
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -281,6 +289,13 @@ class TextureElement extends SDBaseElement {
       init();
     } else if (getUserMedia) {
       initLegacy();
+    }
+  }
+
+  _updateResolution() {
+    if (this._source) {
+      this._resolutionUniform[0] = this._source.width;
+      this._resolutionUniform[1] = this._source.height;
     }
   }
 }

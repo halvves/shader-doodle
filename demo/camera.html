@@ -5,20 +5,39 @@
     <title>Shader Doodle Demo</title>
     <script type="module" src="../src/shader-doodle.js"></script>
     <script type="module" src="../src/sd-texture.js"></script>
+    <style>
+      shader-doodle {
+        height: 100vh;
+        width: 100vw;
+      }
+    </style>
   </head>
   <body>
     <shader-doodle>
       <sd-texture webcam></sd-texture>
       <script type="x-shader/x-fragment">
         uniform sampler2D u_texture0;
+        uniform vec2 u_texture0_resolution;
 
         const float threshold = 0.4;
         const vec4 SEA = vec4(0.635, 0.8, 0.714, 1.0);
         const vec4 SAND = vec4(0.988, 0.933, 0.71, 1.0);
         const vec4 PEACH = vec4(0.933, 0.471, 0.431, 1.0);
 
+        vec2 coverScreen(vec2 fragCoord, vec2 resolution, float aspect) {
+          vec2 uv = 0.5 * (2.0 * fragCoord - resolution);
+          if (resolution.x / resolution.y > aspect) {
+            uv = 0.5 - uv / vec2(resolution.x, -resolution.x / aspect);
+          } else {
+            uv = 0.5 - uv / vec2(resolution.y * aspect, -resolution.y);
+          }
+          return uv;
+        }
+
         void main() {
-          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          float aspect = u_texture0_resolution.x / u_texture0_resolution.y;
+          vec2 uv = coverScreen(gl_FragCoord.xy, u_resolution, aspect);
+
           vec4 tex = texture2D(u_texture0, uv);
           float lum = dot(tex.rgb, vec3(0.299, 0.587, 0.114));
 
