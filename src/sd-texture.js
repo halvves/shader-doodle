@@ -208,15 +208,16 @@ class TextureElement extends SDBaseElement {
 
     this._updateResolution();
     this._texture.update({ pixels: this._source });
+    this._texture.setParameters([
+      [gl.TEXTURE_WRAP_S, this.wrapS],
+      [gl.TEXTURE_WRAP_T, this.wrapT],
+      [gl.TEXTURE_MIN_FILTER, this.minFilter],
+      [gl.TEXTURE_MAG_FILTER, this.magFilter],
+    ]);
 
     if (isPowerOf2 && this.minFilter !== NEAREST && this.minFilter !== LINEAR) {
       gl.generateMipmap(gl.TEXTURE_2D);
     }
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, this.wrapS);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, this.wrapT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, this.minFilter);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, this.magFilter);
   }
 
   _setupVideo() {
@@ -243,11 +244,12 @@ class TextureElement extends SDBaseElement {
     wrapper.appendChild(this._source);
     document.body.appendChild(wrapper);
 
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
     this._updateResolution();
+    this._texture.setParameters([
+      [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE],
+      [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE],
+      [gl.TEXTURE_MIN_FILTER, gl.LINEAR],
+    ]);
     this._source.play();
   }
 
@@ -267,11 +269,13 @@ class TextureElement extends SDBaseElement {
       this._source.height = 240;
       this._source.autoplay = true;
       this._source.srcObject = stream;
-      this._updateResolution();
 
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      this._updateResolution();
+      this._texture.setParameters([
+        [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE],
+        [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE],
+        [gl.TEXTURE_MIN_FILTER, gl.LINEAR],
+      ]);
     };
 
     const init = () => {
