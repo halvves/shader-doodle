@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <script type="module" src="../src/sd-texture.js"></script>
+    <style>
+      shader-doodle {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 100vw;
+      }
+    </style>
+  </head>
+  <body>
+    <shader-doodle>
+      <sd-texture webcam name="cam"></sd-texture>
+      <sd-texture src="./noise.png" name="noise"></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D cam;
+        uniform vec2 cam_resolution;
+
+        uniform sampler2D noise;
+
+        const float threshold = 0.4;
+        const vec4 SEA = vec4(0.635, 0.8, 0.714, 1.0);
+        const vec4 SAND = vec4(0.988, 0.933, 0.71, 1.0);
+        const vec4 PEACH = vec4(0.933, 0.471, 0.431, 1.0);
+
+        float ramp(float y, float start, float end) {
+          float inside = step(start, y) - step(end, y);
+          float fact = (y - start) / (end - start) * inside;
+          return (1.0 - fact) * inside;
+        }
+
+        float onOff(float a, float b, float c, float t) {
+          return step(c, sin(t + a * cos(t * b)));
+        }
+
+        vec2 coverScreen(vec2 fragCoord, vec2 resolution, float aspect) {
+          vec2 uv = 0.5 * (2.0 * fragCoord - resolution);
+          if (resolution.x / resolution.y > aspect) {
+            uv = 0.5 - uv / vec2(resolution.x, -resolution.x / aspect);
+          } else {
+            uv = 0.5 - uv / vec2(resolution.y * aspect, -resolution.y);
+          }
+          return uv;
+        }
+
+        vec2 screenDistort(vec2 uv) {
+          uv -= vec2(0.5, 0.5);
+          uv = uv * 1.2 * (1.0 / 1.2 + 2.0 * uv.x * uv.x * uv.y * uv.y);
+          uv += vec2(0.5, 0.5);
+          return uv;
+        }
+
+        vec2 scanWarp(vec2 uv, float t) {
+          float window = 1.0 / (1.0 + 20.0 * (uv.y - mod(t / 4.0, 1.0)) * (uv.y - mod(t / 4.0, 1.0)));
+          uv.x = uv.x + sin(uv.y * 10.0 + t) / 50.0 * onOff(4.0, 4.0, 0.3, t) * (1.0 + cos(t * 80.0)) * window;
+          float vShift = 0.4 * onOff(2.0, 3.0, 0.9, t) * (sin(t) * sin(t * 20.0) + (0.5 + 0.1 * sin(t * 200.0) * cos(t)));
+          uv.y = mod(uv.y + vShift, 1.0);
+          return uv;
+        }
+
+        float vignette(vec2 uv, float t) {
+          float vigAmt = 3.0 + 0.3 * sin(t + 5.0 * cos(t * 5.0));
+          return (1.0 - vigAmt * (uv.y - 0.5) * (uv.y - 0.5)) * (1.0 - vigAmt * (uv.x - 0.5) * (uv.x - 0.5));
+        }
+
+        float crtLines(vec2 uv, float t) {
+          return ((12.0 + mod(uv.y * 30.0 + t, 1.0)) / 13.0);
+        }
+
+        float getNoise(vec2 p, float t) {
+          float s = texture2D(noise, vec2(1.0, 2.0 * cos(t)) * t * 8.0 + p * 1.0).x;
+          s *= s;
+          return s;
+        }
+
+        float getStripes(vec2 uv, float t) {
+          float noi = getNoise(uv * vec2(0.5, 1.0) + vec2(1.0, 3.0), t);
+          return ramp(mod(uv.y * 4.0 + t/2.0 + sin(t + sin(t * 0.63)), 1.0), 0.5, 0.6) * noi;
+        }
+
+        void main() {
+          float aspect = cam_resolution.x / cam_resolution.y;
+          vec2 uv = coverScreen(gl_FragCoord.xy, u_resolution, aspect);
+          uv = screenDistort(uv);
+          uv = scanWarp(uv, u_time);
+          vec4 vid_out = texture2D(cam, uv);
+
+          vid_out.rgb += getStripes(uv, u_time);
+          vid_out.rgb += getNoise(uv * 3.0, u_time) / 3.0;
+          vid_out.rgb *= vignette(uv, u_time);
+          vid_out.rgb *= crtLines(uv, u_time);
+
+          gl_FragColor = vid_out;
+        }
+      </script>
+    </shader-doodle>
+  </body>
+</html>
