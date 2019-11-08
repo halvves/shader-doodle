@@ -31,10 +31,16 @@ class Texture {
     );
   }
 
+  _activate() {
+    if (this._gl.getParameter(this._gl.ACTIVE_TEXTURE) === this._textureUnit)
+      return;
+    this._gl.activeTexture(this._gl[`TEXTURE${this._textureUnit}`]);
+  }
+
   _bind() {
     if (this._bound) return;
 
-    this._gl.activeTexture(this._gl[`TEXTURE${this._textureUnit}`]);
+    this._activate();
     this._gl.bindTexture(this._gl.TEXTURE_2D, this._textureObject);
     this._bound = true;
   }
@@ -45,6 +51,13 @@ class Texture {
     // TODO: Research - is this good/bad/extra overhead?
     // this._gl.bindTexture(this._gl.TEXTURE_2D, null);
     this._bound = false;
+  }
+
+  setParameters(params) {
+    this._activate();
+    params.forEach(([p, val]) => {
+      this._gl.texParameteri(this._gl.TEXTURE_2D, p, val);
+    });
   }
 
   toUniform(location, opts) {
@@ -65,7 +78,6 @@ class Texture {
 
     const {
       _gl: gl,
-      _textureObject: texture,
       _opts: {
         level,
         internalFormat,
