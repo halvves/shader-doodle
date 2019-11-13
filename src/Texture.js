@@ -1,12 +1,12 @@
-let currentTextureUnit = 0;
-
 const PIXEL = new Uint8Array([0, 0, 0, 255]);
 
 class Texture {
-  constructor(gl, opts = {}) {
-    this._gl = gl;
+  constructor(sd, opts = {}) {
+    this._sd = sd;
+    const { gl } = this._sd;
+
     this._textureObject = gl.createTexture();
-    this._textureUnit = currentTextureUnit++;
+    this._textureUnit = this._sd.usedTextureUnit++;
     this._bound = false;
     this._opts = {};
 
@@ -32,16 +32,17 @@ class Texture {
   }
 
   _activate() {
-    if (this._gl.getParameter(this._gl.ACTIVE_TEXTURE) === this._textureUnit)
-      return;
-    this._gl.activeTexture(this._gl[`TEXTURE${this._textureUnit}`]);
+    const { gl } = this._sd;
+    if (gl.getParameter(gl.ACTIVE_TEXTURE) === this._textureUnit) return;
+    gl.activeTexture(gl[`TEXTURE${this._textureUnit}`]);
   }
 
   _bind() {
     if (this._bound) return;
+    const { gl } = this._sd;
 
     this._activate();
-    this._gl.bindTexture(this._gl.TEXTURE_2D, this._textureObject);
+    gl.bindTexture(gl.TEXTURE_2D, this._textureObject);
     this._bound = true;
   }
 
@@ -54,17 +55,19 @@ class Texture {
   }
 
   setParameters(params) {
+    const { gl } = this._sd;
     this._activate();
     params.forEach(([p, val]) => {
-      this._gl.texParameteri(this._gl.TEXTURE_2D, p, val);
+      gl.texParameteri(gl.TEXTURE_2D, p, val);
     });
   }
 
   toUniform(location, opts) {
     if (!location) return;
+    const { gl } = this._sd;
 
     this._bind();
-    this._gl.uniform1i(location, this._textureUnit);
+    gl.uniform1i(location, this._textureUnit);
     this.update(opts);
     this._unbind();
   }
@@ -77,7 +80,7 @@ class Texture {
     this._bind();
 
     const {
-      _gl: gl,
+      _sd: { gl },
       _opts: {
         level,
         internalFormat,
