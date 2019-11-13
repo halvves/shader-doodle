@@ -126,7 +126,7 @@ class TextureElement extends SDBaseElement {
       program,
       this.name + '_resolution'
     );
-    this._texture = new Texture(gl);
+    this._texture = new Texture(this._sd);
 
     if (!this.src && !this.webcam) return;
 
