@@ -9,7 +9,9 @@ const SHADERTOY_IO = /\(\s*out\s+vec4\s+(\S+)\s*,\s*in\s+vec2\s+(\S+)\s*\)/;
 class ShaderDoodleElement extends HTMLElement {
   constructor() {
     super();
-    this._sd = {};
+    this._sd = {
+      usedTextureUnit: 0,
+    };
     this.shadow = this.attachShadow({ mode: 'open' });
   }
 
