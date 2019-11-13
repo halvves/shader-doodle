@@ -84,7 +84,7 @@ class SDAudioElement extends SDBaseElement {
 
     this._location = gl.getUniformLocation(program, this.name);
 
-    this._texture = new Texture(gl, {
+    this._texture = new Texture(this._sd, {
       internalFormat: gl.LUMINANCE,
       width: this._waveData.length,
       height: 2,
