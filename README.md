@@ -16,7 +16,7 @@ NOTE: this README and branch are for the new `<shader-doodle />` alpha. To view 
 ### Script Include
 
 ```html
-<script src="https://unpkg.com/shader-doodle@1.0.0-alpha.0/"></script>
+<script src="https://unpkg.com/shader-doodle@1.0.0-alpha.9/"></script>
 <shader-doodle>
   <script type="x-shader/x-fragment">
     void main() {
@@ -76,6 +76,203 @@ Right now the api is fairly basic. The default syntax is vanilla glsl and there 
 
 _NOTE: the only functional difference is in mouse position behavior_
 
+### Textures
+
+Textures can be used as a `sampler2D` in a shader by using the `<sd-texture />` component. This will pass in two uniforms:
+
+* `uniform sampler2D {texture_name}`
+* `uniform vec2 {texture_name}_resolution`
+
+#### Attributes
+
+* `src`: source of an image/video or selector for a canvas
+* `name`: specify a name for the texture uniform (will default to `u_texture{index}`)
+* `webcam`: overrides `src` and tries to use webrtc webcam as texture source
+
+#### Examples
+
+##### Image:
+```html
+<shader-doodle>
+  <sd-texture src="image.jpg"></sd-texture>
+  <script type="x-shader/x-fragment">
+    uniform sampler2D u_texture0;
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+      vec4 texture = texture2D(u_texture0, uv);
+
+      gl_FragColor = texture;
+    }
+  </script>
+</shader-doodle>
+```
+
+##### Video:
+```html
+<shader-doodle>
+  <sd-texture src="video.mp4" name="video"></sd-texture>
+  <script type="x-shader/x-fragment">
+    uniform sampler2D video;
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+      vec4 texture = texture2D(video, uv);
+
+      gl_FragColor = texture;
+    }
+  </script>
+</shader-doodle>
+```
+
+##### Canvas:
+```html
+<canvas id="canvas"></canvas>
+<shader-doodle>
+  <sd-texture src="#canvas" name="u_canvas"></sd-texture>
+  <script type="x-shader/x-fragment">
+    uniform sampler2D u_canvas;
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+      vec4 texture = texture2D(u_canvas, uv);
+
+      gl_FragColor = texture;
+    }
+  </script>
+</shader-doodle>
+<script>
+  const text = 'L  O  R  E  M     I  P  S  U  M';
+  const canvas = document.getElementById("canvas");
+  canvas.height = 1024; canvas.width = 1024;
+  const ctx = canvas.getContext("2d");
+  ctx.font = "Bold " + canvas.width / 12 + "px 'Helvetica'";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "top";
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#fff';
+  ctx.translate(canvas.width / 2, 0);
+  for (var i = -1; i < 6; i++) {
+    ctx.fillText(text, 0, i * canvas.height / 6);
+  }
+</script>
+```
+
+##### Camera:
+```html
+<shader-doodle>
+  <sd-texture webcam name="cam"></sd-texture>
+  <script type="x-shader/x-fragment">
+    uniform sampler2D cam;
+    uniform vec2 cam_resolution;
+
+    vec2 coverScreen(vec2 fragCoord, vec2 resolution, float aspect) {
+      vec2 uv = 0.5 * (2.0 * fragCoord - resolution);
+      if (resolution.x / resolution.y > aspect) {
+        uv = 0.5 - uv / vec2(resolution.x, -resolution.x / aspect);
+      } else {
+        uv = 0.5 - uv / vec2(resolution.y * aspect, -resolution.y);
+      }
+      return uv;
+    }
+
+    void main() {
+      float aspect = cam_resolution.x / cam_resolution.y;
+      vec2 uv = coverScreen(gl_FragCoord.xy, u_resolution, aspect);
+      vec4 texture = texture2D(cam, uv);
+
+      gl_FragColor = texture;
+    }
+  </script>
+</shader-doodle>
+```
+
+### Audio Data
+
+The frequency and waveform data from an audio source can be used in a shader as a `sampler2D` by using the `<sd-audio />` component. This will pass in one uniform:
+
+* `uniform sampler2D {audio_name}`
+
+The audio data is setup as two rows of texels.
+
+The first row is frequency data. The x/u axis corresponds to frequency (scaled to 0..1), and the value of a texel at a given x/u is the amplitude of the corresponding frequency.
+
+The second row is wave data. The x/u axis corresponds to the x axis of the waveform. (scaled to 0..1), and the value of a texel at a given x/u is the y axis of the waveform.
+
+#### Attributes
+
+* `src`: a url to an audio file or an id selector for an `<audio />` element.
+* `name`: specify a name for the texture uniform (will default to `u_audio{index}`)
+* `loop`: (_temporarily disabled as part of an ios13 fix_) loop the audio file (_doesn't work on an existing audio tag_)
+* `autoplay`: (_temporarily disabled as part of an ios13 fix_) autoplay the audio file (_doesn't work on an existing audio tag_)
+* `crossorigin`: (_temporarily disabled as part of an ios13 fix_) specify cors (_doesn't work on an existing audio tag_)
+
+Not yet implemented is a `mic` attribute that will allow using audio from a webrtc source.
+
+#### Examples
+
+##### File:
+```html
+<shader-doodle>
+  <sd-audio src="./audio.mp3" autoplay loop></sd-audio>
+  <script type="x-shader/x-fragment">
+    uniform sampler2D u_audio0;
+
+    float amplitude(sampler2D audio, float f) {
+      return texture2D(audio, vec2(f, .25)).x;
+    }
+
+    float wave(sampler2D audio, float t) {
+      return texture2D(audio, vec2(t, .75)).x;
+    }
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+
+      float w = wave(u_audio0, uv.x);
+      float a = amplitude(u_audio0, abs(.5 - uv.y) / w);
+
+      vec3 color = vec3(a * .5, (1. - a), 5. * a * (1. - a)) * a;
+      color.rb += (1. - smoothstep(.0, .1, abs(w - uv.y))) * a;
+
+      gl_FragColor = vec4(color, 1.);
+    }
+  </script>
+</shader-doodle>
+```
+
+##### Audio Tag:
+```html
+<audio src="./audio.mp3" autoplay loop id="audio"></audio>
+<shader-doodle>
+  <sd-audio src="#audio"></sd-audio>
+  <script type="x-shader/x-fragment">
+    uniform sampler2D u_audio0;
+
+    float amplitude(sampler2D audio, float f) {
+      return texture2D(audio, vec2(f, .25)).x;
+    }
+
+    float wave(sampler2D audio, float t) {
+      return texture2D(audio, vec2(t, .75)).x;
+    }
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+
+      float w = wave(u_audio0, uv.x);
+      float a = amplitude(u_audio0, abs(.5 - uv.y) / w);
+
+      vec3 color = vec3(a * .5, (1. - a), 5. * a * (1. - a)) * a;
+      color.rb += (1. - smoothstep(.0, .1, abs(w - uv.y))) * a;
+
+      gl_FragColor = vec4(color, 1.);
+    }
+  </script>
+</shader-doodle>
+```
+
 ## Next steps (ordered by priority)
 
 * shader precision attribute
@@ -85,7 +282,7 @@ _NOTE: the only functional difference is in mouse position behavior_
 * lerp attribute for mouse
 * custom uniform component
 * webgl2
-* api for multi-pass?
+* buffers/multi-pass?
 
 ## See Also
 
