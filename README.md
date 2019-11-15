@@ -88,6 +88,7 @@ Textures can be used as a `sampler2D` in a shader by using the `<sd-texture />` 
 * `src`: source of an image/video or selector for a canvas
 * `name`: specify a name for the texture uniform (will default to `u_texture{index}`)
 * `webcam`: overrides `src` and tries to use webrtc webcam as texture source
+* `force-update`: forces a texture to always update (useful when using a canvas animation or animated gif as a texture)
 
 #### Examples
 
