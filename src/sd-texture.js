@@ -2,6 +2,7 @@ import SDBaseElement from './sd-base.js';
 import Texture from './Texture.js';
 
 const CAMERA = 'camera';
+const CANVAS = 'canvas';
 const IMAGE = 'image';
 const VIDEO = 'video';
 
@@ -40,9 +41,6 @@ const isImage = s => IMG_REG.test(s);
 const VID_REG = /(\.mp4|\.3gp|\.webm|\.ogv)$/i;
 const isVideo = s => VID_REG.test(s);
 
-const floorPowerOfTwo = value => 2 ** Math.floor(Math.log(value) / Math.LN2);
-const isPow2 = value => !(value & (value - 1)) && !!value;
-
 const UNNAMED_TEXTURE_PREFIX = 'u_texture';
 
 let unnamedTextureIndex = 0;
@@ -60,6 +58,18 @@ class TextureElement extends SDBaseElement {
 
   disconnectedCallback() {
     // DELETE TEXTURE
+  }
+
+  get forceUpdate() {
+    return this.hasAttribute('force-update');
+  }
+
+  set forceUpdate(f) {
+    if (f) {
+      this.setAttribute('force-update', '');
+    } else {
+      this.removeAttribute('force-update');
+    }
   }
 
   get magFilter() {
@@ -80,9 +90,10 @@ class TextureElement extends SDBaseElement {
 
   get shouldUpdate() {
     return (
-      (this.type === CAMERA || this.type === VIDEO) &&
-      this._source instanceof HTMLVideoElement &&
-      this._source.readyState === this._source.HAVE_ENOUGH_DATA
+      this.forceUpdate ||
+      ((this.type === CAMERA || this.type === VIDEO) &&
+        this._source instanceof HTMLVideoElement &&
+        this._source.readyState === this._source.HAVE_ENOUGH_DATA)
     );
   }
 
@@ -137,7 +148,7 @@ class TextureElement extends SDBaseElement {
     } else if (isImage(this.src)) {
       this._setupImage();
     } else {
-      this._setupCanvasImage();
+      this._setupElementReference();
     }
   }
 
@@ -150,11 +161,33 @@ class TextureElement extends SDBaseElement {
     gl.uniform2fv(this._resolutionLocation, this._resolutionUniform);
   }
 
-  _setupCanvasImage() {
-    const canvas = document.querySelector(this.src);
-    if (canvas instanceof HTMLCanvasElement) {
-      this.src = canvas.toDataURL();
-      this._setupImage();
+  _setupElementReference() {
+    try {
+      this._source = document.querySelector(this.src);
+    } catch (e) {
+      console.warn(`src: ${this.src}: invalid selector`);
+    }
+
+    if (!this._source) {
+      console.warn(`src: ${this.src}: no element could be selected`);
+      return;
+    }
+
+    if (this._source instanceof HTMLImageElement) {
+      this.type = IMAGE;
+      if (this._source.complete) {
+        this._imageOnload();
+      } else {
+        this._source.addEventListener('load', this._imageOnload);
+      }
+    } else if (this._source instanceof HTMLVideoElement) {
+      this.type = VIDEO;
+      this._videoOnSetup();
+    } else if (this._source instanceof HTMLCanvasElement) {
+      this.type = CANVAS;
+      this._imageOnload();
+    } else {
+      console.warn(`src: ${this.src}: element is not a valid texture source`);
     }
   }
 
@@ -170,60 +203,28 @@ class TextureElement extends SDBaseElement {
   }
 
   _imageOnload() {
-    const { _source: img } = this;
     const { gl } = this._sd;
-    if (
-      !gl ||
-      !img ||
-      !(
-        img instanceof HTMLImageElement ||
-        img instanceof HTMLCanvasElement ||
-        img instanceof ImageBitmap
-      )
-    ) {
-      return;
-    }
-
-    let isPowerOf2 = isPow2(img.width) && isPow2(img.height);
-    const needsPowerOfTwo =
-      this.wrapS !== CLAMP_TO_EDGE ||
-      this.wrapT !== CLAMP_TO_EDGE ||
-      (this.minFilter !== NEAREST && this.minFilter !== LINEAR);
-
-    if (needsPowerOfTwo && isPowerOf2 === false) {
-      this.pow2canvas = this.pow2canvas || document.createElement('canvas');
-      this.pow2canvas.width = floorPowerOfTwo(img.width);
-      this.pow2canvas.height = floorPowerOfTwo(img.height);
-
-      const ctx = this.pow2canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, this.pow2canvas.width, this.pow2canvas.height);
-
-      console.warn(
-        `Image is not power of two ${img.width} x ${img.height}. Resized to ${this.pow2canvas.width} x ${this.pow2canvas.height};`
-      );
-
-      this._source = this.pow2canvas;
-      isPowerOf2 = true;
-    }
-
     this._updateResolution();
-    this._texture.update({ pixels: this._source });
     this._texture.setParameters([
       [gl.TEXTURE_WRAP_S, this.wrapS],
       [gl.TEXTURE_WRAP_T, this.wrapT],
       [gl.TEXTURE_MIN_FILTER, this.minFilter],
       [gl.TEXTURE_MAG_FILTER, this.magFilter],
     ]);
+    this._texture.update({ pixels: this._source });
+  }
 
-    if (isPowerOf2 && this.minFilter !== NEAREST && this.minFilter !== LINEAR) {
-      gl.generateMipmap(gl.TEXTURE_2D);
-    }
+  _videoOnSetup() {
+    const { gl } = this._sd;
+    this._updateResolution();
+    this._texture.setParameters([
+      [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE],
+      [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE],
+      [gl.TEXTURE_MIN_FILTER, gl.LINEAR],
+    ]);
   }
 
   _setupVideo() {
-    const { gl } = this._sd;
-    if (!gl) return;
-
     this.type = VIDEO;
     this._source = document.createElement('video');
 
@@ -244,12 +245,7 @@ class TextureElement extends SDBaseElement {
     wrapper.appendChild(this._source);
     document.body.appendChild(wrapper);
 
-    this._updateResolution();
-    this._texture.setParameters([
-      [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE],
-      [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE],
-      [gl.TEXTURE_MIN_FILTER, gl.LINEAR],
-    ]);
+    this._videoOnSetup();
     this._source.play();
   }
 
@@ -270,12 +266,7 @@ class TextureElement extends SDBaseElement {
       this._source.autoplay = true;
       this._source.srcObject = stream;
 
-      this._updateResolution();
-      this._texture.setParameters([
-        [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE],
-        [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE],
-        [gl.TEXTURE_MIN_FILTER, gl.LINEAR],
-      ]);
+      this._videoOnSetup();
     };
 
     const init = () => {
