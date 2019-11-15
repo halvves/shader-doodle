@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <script type="module" src="../src/sd-texture.js"></script>
+  </head>
+  <body>
+    <img src="image.jpg" class="img"></img>
+    <shader-doodle>
+      <sd-texture src=".img"></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_texture0;
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          float distortion = sin(uv.y * 50.0 + u_time * 5.0) * 0.01;
+          vec4 texture = texture2D(u_texture0, vec2(
+            uv.x + distortion * u_mouse.x / 100.,
+            uv.y + distortion * u_mouse.y / 100.
+          ));
+
+          gl_FragColor = texture;
+        }
+      </script>
+    </shader-doodle>
+  </body>
+</html>

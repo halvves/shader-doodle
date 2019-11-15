@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <script type="module" src="../src/sd-texture.js"></script>
+    <style>
+      #canvas {
+        position: absolute;
+        opacity: 0;
+        height: 1px;
+        width: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <shader-doodle>
+      <sd-texture src="#canvas"></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_texture0;
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          float distortion = sin(uv.y * 50.0 + u_time * 1.0) * 0.01;
+          vec4 texture = texture2D(u_texture0, vec2(
+            uv.x + distortion,
+            uv.y - u_time * .05
+          ));
+
+          gl_FragColor = texture;
+        }
+      </script>
+    </shader-doodle>
+    <script>
+      const text = 'L  O  R  E  M     I  P  S  U  M';
+      const canvas = document.getElementById("canvas");
+      canvas.height = 1024; canvas.width = 1024;
+      const ctx = canvas.getContext("2d");
+      ctx.font = "Bold " + canvas.width / 12 + "px 'Helvetica'";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#fff';
+      ctx.translate(canvas.width / 2, 0);
+      for (var i = -1; i < 6; i++) {
+        ctx.fillText(text, 0, i * canvas.height / 6);
+      }
+    </script>
+  </body>
+</html>

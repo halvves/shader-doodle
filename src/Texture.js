@@ -1,5 +1,8 @@
 const PIXEL = new Uint8Array([0, 0, 0, 255]);
 
+const isPow2 = value => !(value & (value - 1)) && !!value;
+const floorPowerOfTwo = value => 2 ** Math.floor(Math.log(value) / Math.LN2);
+
 class Texture {
   constructor(sd, opts = {}) {
     this._sd = sd;
@@ -54,6 +57,45 @@ class Texture {
     this._bound = false;
   }
 
+  _checkPow2() {
+    const {
+      _sd: { gl },
+      _opts: { pixels },
+    } = this;
+
+    const wrapS = gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S);
+    const wrapT = gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T);
+    const minFilter = gl.getTexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER);
+
+    const isPowerOf2 = isPow2(pixels.width) && isPow2(pixels.height);
+    const needsPowerOfTwo =
+      wrapS !== gl.CLAMP_TO_EDGE ||
+      wrapT !== gl.CLAMP_TO_EDGE ||
+      (minFilter !== gl.LINEAR && minFilter !== gl.NEAREST);
+
+    if (needsPowerOfTwo && !isPowerOf2) {
+      if (!this._pow2canvas) {
+        this._pow2canvas = document.createElement('canvas');
+        this._pow2canvas.width = floorPowerOfTwo(pixels.width);
+        this._pow2canvas.height = floorPowerOfTwo(pixels.height);
+        console.warn(
+          `Texture is not power of two ${pixels.width} x ${pixels.height}. Resized to ${this._pow2canvas.width} x ${this._pow2canvas.height};`
+        );
+      }
+
+      const ctx = this._pow2canvas.getContext('2d');
+      ctx.drawImage(
+        pixels,
+        0,
+        0,
+        this._pow2canvas.width,
+        this._pow2canvas.height
+      );
+    }
+
+    this._px = this._pow2canvas || pixels;
+  }
+
   setParameters(params) {
     const { gl } = this._sd;
     this._activate();
@@ -99,8 +141,12 @@ class Texture {
 
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
 
+    if (pixels) {
+      this._checkPow2();
+    }
+
     if (typeof offsetX === 'number' && typeof offsetY === 'number') {
-      if (pixels) {
+      if (this._px) {
         gl.texSubImage2D(
           gl.TEXTURE_2D,
           level,
@@ -108,7 +154,7 @@ class Texture {
           offsetY,
           format,
           type,
-          pixels
+          this._px
         );
       } else {
         gl.texSubImage2D(
@@ -124,14 +170,14 @@ class Texture {
         );
       }
     } else {
-      if (pixels) {
+      if (this._px) {
         gl.texImage2D(
           gl.TEXTURE_2D,
           level,
           internalFormat,
           format,
           type,
-          pixels
+          this._px
         );
       } else {
         gl.texImage2D(
@@ -145,6 +191,16 @@ class Texture {
           type,
           buffer
         );
+      }
+    }
+
+    if (this._px && isPow2(this._px.width) && isPow2(this._px.height)) {
+      const minFilter = gl.getTexParameter(
+        gl.TEXTURE_2D,
+        gl.TEXTURE_MIN_FILTER
+      );
+      if (minFilter !== gl.LINEAR && minFilter !== gl.NEAREST) {
+        gl.generateMipmap(gl.TEXTURE_2D);
       }
     }
 
