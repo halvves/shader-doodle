@@ -16,7 +16,7 @@ NOTE: this README and branch are for the new `<shader-doodle />` alpha. To view 
 ### Script Include
 
 ```html
-<script src="https://unpkg.com/shader-doodle@1.0.0-alpha.9/"></script>
+<script src="https://unpkg.com/shader-doodle@alpha"></script>
 <shader-doodle>
   <script type="x-shader/x-fragment">
     void main() {
