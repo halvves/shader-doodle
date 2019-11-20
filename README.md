@@ -1,6 +1,8 @@
 # &lt;shader-doodle /&gt;
 
 [![Latest NPM release][npm-badge]][npm-badge-url]
+[![Dependencies][deps-badge]][deps-badge-url]
+[![Minzip Size][size-badge]][size-badge-url]
 [![License][license-badge]][license-badge-url]
 
 *A friendly web-component for writing and rendering shaders.*
@@ -292,7 +294,11 @@ Not yet implemented is a `mic` attribute that will allow using audio from a webr
 * [The Book of Shaders](https://thebookofshaders.com/) - A gentle step-by-step guide through the world Fragment Shaders.
 * [Shadertoy](https://www.shadertoy.com/) - Shader playground.
 
-[npm-badge]: https://img.shields.io/npm/v/shader-doodle.svg
-[npm-badge-url]: https://www.npmjs.com/package/shader-doodle
-[license-badge]: https://img.shields.io/npm/l/shader-doodle.svg
+[npm-badge]: https://img.shields.io/npm/v/shader-doodle/alpha
+[npm-badge-url]: https://www.npmjs.com/package/shader-doodle/v/alpha
+[deps-badge]: https://img.shields.io/david/halvves/shader-doodle
+[deps-badge-url]: https://david-dm.org/halvves/shader-doodle
+[size-badge]: https://img.shields.io/bundlephobia/minzip/shader-doodle/1.0.0-alpha.10
+[size-badge-url]: https://bundlephobia.com/result?p=shader-doodle@1.0.0-alpha.10
+[license-badge]: https://img.shields.io/github/license/halvves/shader-doodle
 [license-badge-url]: ./LICENSE
