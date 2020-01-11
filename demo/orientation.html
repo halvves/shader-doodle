@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <script>
+        window.onresize = function() {
+            document.body.height = window.innerHeight;
+        }
+        window.addEventListener('DOMContentLoaded', window.onresize, false);
+    </script>
+    <style>
+      shader-doodle {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        float tiltNorm(float g) {
+          return clamp((g + 90.) / 180., 0., 1.);
+        }
+
+        vec2 tiltPos(vec3 orientation) {
+          return vec2(tiltNorm(orientation.z), tiltNorm(orientation.y * -1.));
+        }
+
+        void main() {
+          vec2 pos = u_resolution.xy * tiltPos(u_orientation);
+          float r = min(u_resolution.x, u_resolution.y) * .25;
+          float d = length(gl_FragCoord.xy - pos);
+
+          vec3 color = vec3(1.);
+          color.rg -= (1. - smoothstep(r - 1., r + 1., d));
+
+          gl_FragColor = vec4(color, 1.);
+        }
+      </script>
+    </shader-doodle>
+  </body>
+</html>
