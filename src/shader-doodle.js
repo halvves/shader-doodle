@@ -4,6 +4,8 @@ import SDBaseElement from './sd-base.js';
 import './sd-audio.js';
 import './sd-texture.js';
 
+import bindMethods from './utils/bindMethods.js';
+
 const SHADERTOY_IO = /\(\s*out\s+vec4\s+(\S+)\s*,\s*in\s+vec2\s+(\S+)\s*\)/;
 
 class ShaderDoodleElement extends HTMLElement {
@@ -29,9 +31,13 @@ class ShaderDoodleElement extends HTMLElement {
 
   disconnectedCallback() {
     this._sd.mounted = false;
-    this._sd.canvas.removeEventListener('mousedown', this.mouseDown);
-    this._sd.canvas.removeEventListener('mousemove', this.mouseMove);
-    this._sd.canvas.removeEventListener('mouseup', this.mouseUp);
+    this._sd.canvas.removeEventListener('mousedown', this._handleMouseDown);
+    this._sd.canvas.removeEventListener('mousemove', this._handleMouseMove);
+    this._sd.canvas.removeEventListener('mouseup', this._handleMouseUp);
+    window.removeEventListener(
+      'deviceorientation',
+      this._handleDeviceOrientation
+    );
     cancelAnimationFrame(this.animationFrame);
   }
 
@@ -127,6 +133,11 @@ class ShaderDoodleElement extends HTMLElement {
         type: useST ? 'vec4' : 'vec2',
         value: useST ? [0, 0, 0, 0] : [0, 0],
       },
+      orientation: {
+        name: useST ? 'iOrientation' : 'u_orientation',
+        type: 'vec3',
+        value: [0, 0, 0],
+      },
     };
     this.shadow.innerHTML = Template.render();
     const canvas = (this._sd.canvas = Template.map(this.shadow).canvas);
@@ -190,11 +201,19 @@ class ShaderDoodleElement extends HTMLElement {
       uniform.location = gl.getUniformLocation(program, uniform.name);
     });
 
-    this._bind('mouseDown', 'mouseMove', 'mouseUp', 'render');
+    bindMethods(
+      this,
+      '_handleDeviceOrientation',
+      '_handleMouseDown',
+      '_handleMouseMove',
+      '_handleMouseUp',
+      'render'
+    );
 
-    canvas.addEventListener('mousedown', this.mouseDown);
-    canvas.addEventListener('mousemove', this.mouseMove);
-    canvas.addEventListener('mouseup', this.mouseUp);
+    canvas.addEventListener('mousedown', this._handleMouseDown);
+    canvas.addEventListener('mousemove', this._handleMouseMove);
+    canvas.addEventListener('mouseup', this._handleMouseUp);
+    window.addEventListener('deviceorientation', this._handleDeviceOrientation);
 
     this.render();
   }
@@ -225,7 +244,38 @@ class ShaderDoodleElement extends HTMLElement {
     this.animationFrame = requestAnimationFrame(this.render);
   }
 
-  mouseDown(e) {
+  _setupDeviceOrientation() {
+    this._sd.orientationRequested = true;
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      DeviceOrientationEvent.requestPermission()
+        .then(perms => {
+          if (perms === 'granted') {
+            window.addEventListener(
+              'deviceorientation',
+              this._handleDeviceOrientation
+            );
+          }
+        })
+        .catch(console.error);
+    } else {
+      window.addEventListener(
+        'deviceorientation',
+        this._handleDeviceOrientation
+      );
+    }
+  }
+
+  _handleDeviceOrientation(e) {
+    this.uniforms.orientation.value[0] = e.alpha;
+    this.uniforms.orientation.value[1] = e.beta;
+    this.uniforms.orientation.value[2] = e.gamma;
+  }
+
+  _handleMouseDown(e) {
+    if (!this._sd.orientationRequested) {
+      this._setupDeviceOrientation();
+    }
+
     if (this._sd.useST) {
       this.mousedown = true;
       const { top, left, height } = this.rect;
@@ -235,7 +285,7 @@ class ShaderDoodleElement extends HTMLElement {
     }
   }
 
-  mouseMove(e) {
+  _handleMouseMove(e) {
     if (!this.ticking && (!this._sd.useST || this.mousedown)) {
       const { top, left, height } = this.rect;
       this.uniforms.mouse.value[0] = e.clientX - Math.floor(left);
@@ -245,7 +295,7 @@ class ShaderDoodleElement extends HTMLElement {
     }
   }
 
-  mouseUp(e) {
+  _handleMouseUp(e) {
     if (this._sd.useST) {
       this.mousedown = false;
       this.uniforms.mouse.value[2] = 0;
@@ -320,10 +370,6 @@ class ShaderDoodleElement extends HTMLElement {
     }
 
     return program;
-  }
-
-  _bind(...methods) {
-    methods.forEach(method => (this[method] = this[method].bind(this)));
   }
 }
 
