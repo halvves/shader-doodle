@@ -5,6 +5,7 @@ import './sd-audio.js';
 import './sd-texture.js';
 
 import bindMethods from './utils/bindMethods.js';
+import getMouseOrTouch from './utils/getMouseOrTouch.js';
 
 const SHADERTOY_IO = /\(\s*out\s+vec4\s+(\S+)\s*,\s*in\s+vec2\s+(\S+)\s*\)/;
 
@@ -213,6 +214,10 @@ class ShaderDoodleElement extends HTMLElement {
     canvas.addEventListener('mousedown', this._handleMouseDown);
     canvas.addEventListener('mousemove', this._handleMouseMove);
     canvas.addEventListener('mouseup', this._handleMouseUp);
+    canvas.addEventListener('mouseout', this._handleMouseUp);
+    canvas.addEventListener('touchstart', this._handleMouseDown);
+    canvas.addEventListener('touchmove', this._handleMouseMove);
+    canvas.addEventListener('touchend', this._handleMouseUp);
     window.addEventListener('deviceorientation', this._handleDeviceOrientation);
 
     this.render();
@@ -278,19 +283,21 @@ class ShaderDoodleElement extends HTMLElement {
 
     if (this._sd.useST) {
       this.mousedown = true;
+      const action = getMouseOrTouch(e);
       const { top, left, height } = this.rect;
-      this.uniforms.mouse.value[2] = e.clientX - Math.floor(left);
+      this.uniforms.mouse.value[2] = action[0] - Math.floor(left);
       this.uniforms.mouse.value[3] =
-        Math.floor(height) - (e.clientY - Math.floor(top));
+        Math.floor(height) - (action[1] - Math.floor(top));
     }
   }
 
   _handleMouseMove(e) {
     if (!this.ticking && (!this._sd.useST || this.mousedown)) {
+      const action = getMouseOrTouch(e);
       const { top, left, height } = this.rect;
-      this.uniforms.mouse.value[0] = e.clientX - Math.floor(left);
+      this.uniforms.mouse.value[0] = action[0] - Math.floor(left);
       this.uniforms.mouse.value[1] =
-        Math.floor(height) - (e.clientY - Math.floor(top));
+        Math.floor(height) - (action[1] - Math.floor(top));
       this.ticking = true;
     }
   }
