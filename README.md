@@ -282,7 +282,6 @@ Not yet implemented is a `mic` attribute that will allow using audio from a webr
 
 * shader precision attribute
 * clearColor attribute
-* touch support for mouse uniform
 * lerp attribute for mouse
 * custom uniform component
 * webgl2
