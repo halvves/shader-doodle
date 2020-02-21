@@ -4,6 +4,7 @@ import SDBaseElement from './sd-base.js';
 import './sd-audio.js';
 import './sd-texture.js';
 
+import asyncGetScriptContent from './utils/asyncGetScriptContent.js';
 import bindMethods from './utils/bindMethods.js';
 import getMouseOrTouch from './utils/getMouseOrTouch.js';
 
@@ -42,42 +43,17 @@ class ShaderDoodleElement extends HTMLElement {
     cancelAnimationFrame(this.animationFrame);
   }
 
-  loadTextFromUrl(url) {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
-      xhr.onreadystatechange = () => {
-        if (xhr.readyState === XMLHttpRequest.DONE) {
-          if (xhr.status === 200) {
-            resolve(xhr.responseText);
-          } else {
-            reject(xhr.status);
-          }
-        }
-      };
-      xhr.send();
-    });
-  }
-
-  async getScriptContent(script) {
-    if (script.src) {
-      return this.loadTextFromUrl(script.src);
-    }
-
-    return script.text;
-  }
-
   async findShaders() {
     const shdrs = {};
     for (let i = 0; i < this.children.length; i++) {
       const c = this.children[i];
       switch (c.getAttribute('type')) {
         case 'x-shader/x-fragment':
-          shdrs.fragmentShader = await this.getScriptContent(c);
+          shdrs.fragmentShader = await asyncGetScriptContent(c);
           break;
 
         case 'x-shader/x-vertex':
-          shdrs.vertexShader = await this.getScriptContent(c);
+          shdrs.vertexShader = await asyncGetScriptContent(c);
           break;
       }
     }
