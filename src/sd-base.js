@@ -1,8 +1,16 @@
-class SDBaseElement extends HTMLElement {
-  setup(sd) {
-    this._sd = sd;
+import Renderer from './webgl/Renderer.js';
 
-    if (typeof this.init === 'function') this.init();
+class SDBaseElement extends HTMLElement {
+  get renderer() {
+    return Renderer.singleton();
+  }
+
+  get name() {
+    return this.getAttribute('name');
+  }
+
+  set name(val) {
+    this.setAttribute('name', val);
   }
 }
 

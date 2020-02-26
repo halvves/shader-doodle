@@ -282,10 +282,12 @@ Not yet implemented is a `mic` attribute that will allow using audio from a webr
 
 * shader precision attribute
 * clearColor attribute
-* lerp attribute for mouse
-* custom uniform component
+* mouseover 0-1 uniform
+* LinearCopy/NearestCopy helpers
+* lerp attribute for mouse, mouseover, and deviceorientation
+* custom uniforms
 * webgl2
-* buffers/multi-pass?
+* improvements to buffers (shared buffers etc...)
 
 ## See Also
 

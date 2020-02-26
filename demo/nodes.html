@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <style>
+      #canvas {
+        position: absolute;
+        opacity: 0;
+        height: 1px;
+        width: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <shader-doodle>
+      <sd-node>
+        <script type="x-shader/x-fragment">
+          void main() {
+            vec2 st = gl_FragCoord.xy / u_resolution.xy;
+            vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+            gl_FragColor = vec4(color, 1.0);
+          }
+        </script>
+      </sd-node>
+      <sd-texture src="#canvas"></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_texture0;
+        uniform sampler2D u_node0;
+
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          float distortion = sin(st.y * 50.0 + u_time * 1.0) * 0.01;
+          vec4 texture = texture2D(u_texture0, vec2(
+            st.x + distortion,
+            st.y - u_time * .05
+          ));
+
+          gl_FragColor = mix(
+            texture2D(u_node0, st),
+            texture,
+            step((sin(u_time) + 1.) / 2., abs(st.x - .5) + abs(st.y - .5))
+          );
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <sd-node name="motionblur" prevbuffer>
+        <sd-node name="rotate">
+          <sd-node name="basic_gl">
+            <script type="x-shader/x-fragment">
+              void main() {
+                vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+                gl_FragColor = vec4(color, 1.0);
+              }
+            </script>
+          </sd-node>
+          <script type="x-shader/x-fragment">
+            uniform sampler2D basic_gl;
+
+            const float PI = 3.1415926;
+
+            void main() {
+              vec2 st = gl_FragCoord.xy / u_resolution.xy;
+
+              float angle = 2. * PI * (.5 + .5 * cos(u_time));
+              float scale = .7 + .4 * cos(u_time);
+
+              mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+              vec2 p = (st - vec2(0.5)) * rotation / scale + vec2(0.5);
+
+              gl_FragColor = p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0
+              ? vec4(0., 0., 0., 1.)
+              : texture2D(basic_gl, p);
+            }
+          </script>
+        </sd-node>
+        <script type="x-shader/x-fragment">
+          uniform sampler2D rotate, u_prevbuffer;
+
+          void main () {
+            vec2 st = gl_FragCoord.xy / u_resolution.xy;
+            gl_FragColor = vec4(mix(
+              texture2D(rotate, st),
+              texture2D(u_prevbuffer, st),
+              .8
+            ).rgb, 1.);
+          }
+        </script>
+      </sd-node>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D motionblur;
+
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          gl_FragColor = texture2D(motionblur, st);
+        }
+      </script>
+    </shader-doodle>
+    <script>
+      const text = 'L  O  R  E  M     I  P  S  U  M';
+      const canvas = document.getElementById("canvas");
+      canvas.height = 1024; canvas.width = 1024;
+      const ctx = canvas.getContext("2d");
+      ctx.font = "Bold " + canvas.width / 12 + "px 'Helvetica'";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#fff';
+      ctx.translate(canvas.width / 2, 0);
+      for (var i = -1; i < 6; i++) {
+        ctx.fillText(text, 0, i * canvas.height / 6);
+      }
+    </script>
+  </body>
+</html>
