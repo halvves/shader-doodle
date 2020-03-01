@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <style media="screen">
+      body {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: 25vh;
+      }
+      shader-doodle {
+        height: 100%;
+        width: 100%;
+      }
+      shader-doodle:nth-child(8n + 3) {
+        grid-row: auto /span 3;
+      }
+      shader-doodle:nth-child(8n + 5) {
+        grid-column: auto /span 2;
+        grid-row: auto /span 2;
+      }
+    </style>
+  </head>
+  <body>
+    <shader-doodle vertices="[-1, 1, 1, 1, 1, -1, -0, 1, 1, -1, -1, -1]">
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        #define TAU 6.28318530718
+
+        //  by Iñigo Quiles
+        //  https://www.shadertoy.com/view/MsS3Wc
+        vec3 hsb2rgb(in vec3 c) {
+          vec3 rgb = clamp(abs(mod(c.x * 6. + vec3(0., 4., 2.), 6.) - 3.) - 1., 0., 1.);
+          rgb = rgb * rgb * (3. - 2. * rgb);
+          return c.z * mix(vec3(1.), rgb, c.y);
+        }
+
+        vec2 polar(in vec2 st) {
+          vec2 c = vec2(.5) - st;
+          float angle = atan(c.y, c.x) / TAU + .5;
+          float radius = length(c) * 2.;
+          return vec2(angle, radius);
+        }
+
+        vec2 coverScreen(vec2 fragCoord, vec2 resolution, float aspect) {
+          vec2 uv = .5 * (2. * fragCoord - resolution);
+          if (resolution.x / resolution.y > aspect) {
+            uv = .5 - uv / vec2(resolution.x, -resolution.x / aspect);
+          } else {
+            uv = .5 - uv / vec2(resolution.y * aspect, -resolution.y);
+          }
+          return uv;
+        }
+
+        void main() {
+          vec2 st = coverScreen(gl_FragCoord.xy, u_resolution, 1.);
+
+          // wavvves
+          st.x += sin(st.y * 5. + u_time * 2.) * .2;
+
+          // polar coords
+          st = polar(st);
+
+          // swirl about radius
+          st.x = (st.x + st.y * sin(u_time) * .1);
+
+          // rotate angle
+          st.x = mod(st.x + u_time * .3, 1.);
+
+          // map angle to hue and radius to saturation
+          vec3 color = hsb2rgb(vec3(st.x, st.y, 1.));
+
+          gl_FragColor = vec4(color, 1.);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        #define TAU 6.28318530718
+        vec2 polar(in vec2 st) {
+          vec2 c = vec2(.5) - st;
+          float angle = atan(c.y, c.x) / TAU + .5;
+          float radius = length(c) * 2.;
+          return vec2(angle, radius);
+        }
+
+        vec2 coverScreen(vec2 fragCoord, vec2 resolution, float aspect) {
+          vec2 uv = .5 * (2. * fragCoord - resolution);
+          if (resolution.x / resolution.y > aspect) {
+            uv = .5 - uv / vec2(resolution.x, -resolution.x / aspect);
+          } else {
+            uv = .5 - uv / vec2(resolution.y * aspect, -resolution.y);
+          }
+          return uv;
+        }
+
+        void main() {
+          vec2 st = coverScreen(gl_FragCoord.xy, u_resolution, 1.);
+          vec2 mouse = coverScreen(u_mouse.xy, u_resolution, 1.);
+
+          // grid sized based on resolution (to always have the same size grid squares)
+          float grid = max(u_resolution.x, u_resolution.y) * .03;
+
+          // fractional and integer st from grid
+          vec2 i_st = floor(st * grid);
+          vec2 f_st = fract(st * grid);
+
+          // diff mouse and int grid centerpoint
+          vec2 dm = mouse.xy - ((i_st + .5) / grid);
+
+          // angle of diff vector
+          float d = atan(dm.x, dm.y);
+
+          // polar coords
+          vec2 p_st = polar(f_st);
+
+          // swirl about radius (based on length of diff vector)
+          p_st.x = (p_st.x - p_st.y * (length(dm) - .4) * .5);
+
+          // rotate angle (basen on angle of diff vector)
+          p_st.x = mod(p_st.x + d / TAU + TAU, 1.);
+
+          p_st.x = smoothstep(.95, .96, p_st.x);
+          p_st.y = smoothstep(.975, 1., p_st.y);
+
+          vec3 color = vec3(1.);
+          color -= (1. - vec3(0., .184, .655)) * p_st.x;
+          color += p_st.y;
+          color = clamp(color, 0., 1.);
+
+          gl_FragColor = vec4(color, 1.);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment" />
+          vec3 color(float v) {
+            vec3 c = vec3(1.);
+            c -= (1. - vec3(0., .184, .655)) * v;
+            c = clamp(c, 0., 1.);
+            return c;
+          }
+
+          void main() {
+            vec2 st = 2. * (gl_FragCoord.xy - .5 * u_resolution.xy) / u_resolution.y;
+            st.x -= u_time * 0.1;
+            st.y += cos(st.x * 2. + sin(u_time * 0.1)) * .6;
+
+            float a = st.x + u_time * 0.2;
+            a = a - abs(st.y);
+
+            float stroke = (1. + sin(st.x * 2.)) * .5 + .2;
+            float d = stroke - abs(fract(a * 8.) - .1) * 2.;
+            d = smoothstep(0., .05 / max(d + .5, 0.), d + .1);
+
+            gl_FragColor = vec4(color(d), 1.);
+          }
+        </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment" />
+          const float PI = 3.1415926;
+
+          float circle(in vec2 st, in float r) {
+            vec2 dist = fract(st) - vec2(.5);
+            return 1. - smoothstep(
+              r - (r * .075),
+              r + (r * .075),
+              dot(dist, dist) * 2.
+            );
+          }
+
+          vec3 color(float v) {
+            vec3 c = vec3(1.);
+            c -= (1. - vec3(0., .184, .655)) * v;
+            c = clamp(c, 0., 1.);
+            return c;
+          }
+
+          void main() {
+            const float SPEED = .75;
+            const float SIZE = 16.;
+
+            vec2 st = gl_FragCoord.xy / u_resolution.xy;
+            st.x *= u_resolution.x / u_resolution.y;
+            st *= SIZE;
+
+            vec2 ipos = floor(st);
+            vec2 fpos = fract(st);
+
+            float t = fract(u_time * SPEED);
+            float tt = mod(floor(u_time * SPEED), 2.);
+            float ttt = pow(2., abs((mod(floor(u_time * SPEED * 0.5), 6.)) - 3.) + 1.);
+            float t_offset = ttt * .5 - .5;
+
+            float offset = (cos(t * PI) + 1.) / 2.;
+            fpos.x += offset * 2. * (mod(ipos.y, ttt) - t_offset) * tt;
+            fpos.y += offset * 2. * (mod(ipos.x, ttt) - t_offset) * (1. - tt);
+
+            float a = circle(fpos, 0.4);
+
+            gl_FragColor = vec4(color(a), 1.);
+          }
+        </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment" />
+          vec3 color(float v) {
+            vec3 c = vec3(1.);
+            c -= (1. - vec3(0., .184, .655)) * v;
+            c = clamp(c, 0., 1.);
+            return c;
+          }
+
+          void main() {
+            const float horizon = .75;
+            float fov = (u_resolution.y / u_resolution.x) * .45;
+            float scaling = (u_resolution.x / u_resolution.y) * .05;
+
+            vec2 st = gl_FragCoord.xy / u_resolution.xy - .5;
+
+            vec3 p = vec3(st.x, fov, st.y - horizon);
+            vec2 s = vec2(p.x / p.z, p.y / p.z) * scaling;
+
+            float a = sign((mod(s.x + .125, .1) - .05) * (mod(sin(s.y * 2. + mod(u_time * .1, .2)), .1) - .05));
+
+            gl_FragColor = vec4(color(a), 1.);
+          }
+        </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        #define TAU 6.28318530718
+
+        //  by Iñigo Quiles
+        //  https://www.shadertoy.com/view/MsS3Wc
+        vec3 hsb2rgb(in vec3 c) {
+          vec3 rgb = clamp(abs(mod(c.x * 6. + vec3(0., 4., 2.), 6.) - 3.) - 1., 0., 1.);
+          rgb = rgb * rgb * (3. - 2. * rgb);
+          return c.z * mix(vec3(1.), rgb, c.y);
+        }
+
+        vec2 polar(in vec2 st) {
+          vec2 c = vec2(.5) - st;
+          float angle = atan(c.y, c.x) / TAU + .5;
+          float radius = length(c) * 2.;
+          return vec2(angle, radius);
+        }
+
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution;
+          vec2 mouse = u_mouse.xy / u_resolution;
+
+          // grid size based on time
+          float grid = pow(2., mod(floor(u_time * .4), 6.));
+
+          // fractional and integer st from grid
+          vec2 i_st = floor(st * grid);
+          vec2 f_st = fract(st * grid);
+
+          // wavvves
+          f_st.x += sin(f_st.y * 5. + u_time * 2.) * .1;
+
+          // diff mouse and int grid centerpoint
+          vec2 dm = mouse.xy - ((i_st + .5) / grid);
+
+          // angle of diff vector
+          float d = atan(dm.x, dm.y);
+
+          // polar coords
+          vec2 p_st = polar(f_st);
+
+          // swirl about radius (based on length of diff vector)
+          p_st.x = (p_st.x + p_st.y * (length(dm)) * .4);
+
+          // rotate angle (basen on angle of diff vector)
+          p_st.x = mod(p_st.x + d / TAU, 1.);
+
+          // map angle to hue and radius to saturation
+          vec3 color = hsb2rgb(vec3(p_st.x, p_st.y, 1.));
+
+          gl_FragColor = vec4(color, 1.);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle shadertoy>
+      <script type="x-shader/x-fragment">
+        vec3 getSky(vec2 uv)
+          {
+              float atmosphere = sqrt(1.0-uv.y);
+              vec3 skyColor = vec3(0.2,0.4,0.8);
+
+              float scatter = pow(iMouse.y / iResolution.y,1.0 / 15.0);
+              scatter = 1.0 - clamp(scatter,0.8,1.0);
+
+              vec3 scatterColor = mix(vec3(1.0),vec3(1.0,0.3,0.0) * 1.5,scatter);
+              return mix(skyColor,vec3(scatterColor),atmosphere / 1.3);
+
+          }
+
+          vec3 getSun(vec2 uv){
+          	float sun = 1.0 - distance(uv,iMouse.xy / iResolution.y);
+              sun = clamp(sun,0.0,1.0);
+
+              float glow = sun;
+              glow = clamp(glow,0.0,1.0);
+
+              sun = pow(sun,100.0);
+              sun *= 100.0;
+              sun = clamp(sun,0.0,1.0);
+
+              glow = pow(glow,6.0) * 1.0;
+              glow = pow(glow,(uv.y));
+              glow = clamp(glow,0.0,1.0);
+
+              sun *= pow(dot(uv.y, uv.y), 1.0 / 1.65);
+
+              glow *= pow(dot(uv.y, uv.y), 1.0 / 2.0);
+
+              sun += glow;
+
+              vec3 sunColor = vec3(1.0,0.6,0.05) * sun;
+
+              return vec3(sunColor);
+          }
+
+          void mainImage( out vec4 fragColor, in vec2 fragCoord )
+          {
+          	vec2 uv = fragCoord.xy / iResolution.y;
+
+              vec3 sky = getSky(uv);
+              vec3 sun = getSun(uv);
+
+          	fragColor = vec4(sky + sun,1.0);
+          }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <sd-audio src="./audio.mp3" autoplay loop></sd-audio>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_audio0;
+
+        float amplitude(sampler2D audio, float f) {
+          return texture2D(audio, vec2(f, .25)).x;
+        }
+
+        float wave(sampler2D audio, float t) {
+          return texture2D(audio, vec2(t, .75)).x;
+        }
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+
+          float w = wave(u_audio0, uv.x);
+          float a = amplitude(u_audio0, abs(.5 - uv.y) / w);
+
+          vec3 color = vec3(a * .5, (1. - a), 5. * a * (1. - a)) * a;
+          color.rb += (1. - smoothstep(.0, .1, abs(w - uv.y))) * a;
+
+          gl_FragColor = vec4(color, 1.);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <sd-texture src="video.mp4"></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_texture0;
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+
+          float distortion = sin(uv.y * 20.0 + u_time * 5.0) * 0.02;
+
+          float r = texture2D(u_texture0, uv).r;
+          vec2 gb = texture2D(u_texture0, vec2(uv.x + distortion, uv.y)).gb;
+
+          gl_FragColor = vec4(r, gb, 1.);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <sd-texture src="image.jpg"></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_texture0;
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          float distortion = sin(uv.y * 50.0 + u_time * 5.0) * 0.01;
+          vec4 texture = texture2D(u_texture0, vec2(
+            uv.x + distortion * u_mouse.x / 100.,
+            uv.y + distortion * u_mouse.y / 100.
+          ));
+
+          gl_FragColor = texture;
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <sd-texture webcam name="cam"></sd-texture>
+      <sd-texture src="./noise.png" name="noise"></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D cam;
+        uniform vec2 cam_resolution;
+
+        uniform sampler2D noise;
+
+        const float threshold = 0.4;
+        const vec4 SEA = vec4(0.635, 0.8, 0.714, 1.0);
+        const vec4 SAND = vec4(0.988, 0.933, 0.71, 1.0);
+        const vec4 PEACH = vec4(0.933, 0.471, 0.431, 1.0);
+
+        float ramp(float y, float start, float end) {
+          float inside = step(start, y) - step(end, y);
+          float fact = (y - start) / (end - start) * inside;
+          return (1.0 - fact) * inside;
+        }
+
+        float onOff(float a, float b, float c, float t) {
+          return step(c, sin(t + a * cos(t * b)));
+        }
+
+        vec2 coverScreen(vec2 fragCoord, vec2 resolution, float aspect) {
+          vec2 uv = 0.5 * (2.0 * fragCoord - resolution);
+          if (resolution.x / resolution.y > aspect) {
+            uv = 0.5 - uv / vec2(resolution.x, -resolution.x / aspect);
+          } else {
+            uv = 0.5 - uv / vec2(resolution.y * aspect, -resolution.y);
+          }
+          return uv;
+        }
+
+        vec2 screenDistort(vec2 uv) {
+          uv -= vec2(0.5, 0.5);
+          uv = uv * 1.2 * (1.0 / 1.2 + 2.0 * uv.x * uv.x * uv.y * uv.y);
+          uv += vec2(0.5, 0.5);
+          return uv;
+        }
+
+        vec2 scanWarp(vec2 uv, float t) {
+          float window = 1.0 / (1.0 + 20.0 * (uv.y - mod(t / 4.0, 1.0)) * (uv.y - mod(t / 4.0, 1.0)));
+          uv.x = uv.x + sin(uv.y * 10.0 + t) / 50.0 * onOff(4.0, 4.0, 0.3, t) * (1.0 + cos(t * 80.0)) * window;
+          float vShift = 0.4 * onOff(2.0, 3.0, 0.9, t) * (sin(t) * sin(t * 20.0) + (0.5 + 0.1 * sin(t * 200.0) * cos(t)));
+          uv.y = mod(uv.y + vShift, 1.0);
+          return uv;
+        }
+
+        float vignette(vec2 uv, float t) {
+          float vigAmt = 3.0 + 0.3 * sin(t + 5.0 * cos(t * 5.0));
+          return (1.0 - vigAmt * (uv.y - 0.5) * (uv.y - 0.5)) * (1.0 - vigAmt * (uv.x - 0.5) * (uv.x - 0.5));
+        }
+
+        float crtLines(vec2 uv, float t) {
+          return ((12.0 + mod(uv.y * 30.0 + t, 1.0)) / 13.0);
+        }
+
+        float getNoise(vec2 p, float t) {
+          float s = texture2D(noise, vec2(1.0, 2.0 * cos(t)) * t * 8.0 + p * 1.0).x;
+          s *= s;
+          return s;
+        }
+
+        float getStripes(vec2 uv, float t) {
+          float noi = getNoise(uv * vec2(0.5, 1.0) + vec2(1.0, 3.0), t);
+          return ramp(mod(uv.y * 4.0 + t/2.0 + sin(t + sin(t * 0.63)), 1.0), 0.5, 0.6) * noi;
+        }
+
+        void main() {
+          float aspect = cam_resolution.x / cam_resolution.y;
+          vec2 uv = coverScreen(gl_FragCoord.xy, u_resolution, aspect);
+          uv = screenDistort(uv);
+          uv = scanWarp(uv, u_time);
+          vec4 vid_out = texture2D(cam, uv);
+
+          vid_out.rgb += getStripes(uv, u_time);
+          vid_out.rgb += getNoise(uv * 3.0, u_time) / 3.0;
+          vid_out.rgb *= vignette(uv, u_time);
+          vid_out.rgb *= crtLines(uv, u_time);
+
+          gl_FragColor = vid_out;
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <sd-node name="motionblur" prevbuffer>
+        <sd-node name="rotate">
+          <sd-node name="basic_gl">
+            <script type="x-shader/x-fragment">
+              void main() {
+                vec2 st = gl_FragCoord.xy / u_resolution.xy;
+                vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+                gl_FragColor = vec4(color, 1.0);
+              }
+            </script>
+          </sd-node>
+          <script type="x-shader/x-fragment">
+            uniform sampler2D basic_gl;
+
+            const float PI = 3.1415926;
+
+            void main() {
+              vec2 st = gl_FragCoord.xy / u_resolution.xy;
+
+              float angle = 2. * PI * (.5 + .5 * cos(u_time));
+              float scale = .7 + .4 * cos(u_time);
+
+              mat2 rotation = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+              vec2 p = (st - vec2(0.5)) * rotation / scale + vec2(0.5);
+
+              gl_FragColor = p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0
+              ? vec4(0., 0., 0., 1.)
+              : texture2D(basic_gl, p);
+            }
+          </script>
+        </sd-node>
+        <script type="x-shader/x-fragment">
+          uniform sampler2D rotate, u_prevbuffer;
+          uniform float persistence;
+          void main () {
+            vec2 st = gl_FragCoord.xy / u_resolution.xy;
+            gl_FragColor = vec4(mix(
+              texture2D(rotate, st),
+              texture2D(u_prevbuffer, st),
+              .8
+            ).rgb, 1.);
+          }
+        </script>
+      </sd-node>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D motionblur;
+
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          gl_FragColor = texture2D(motionblur, st);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+  </body>
+</html>
