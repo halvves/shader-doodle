@@ -3,7 +3,7 @@ import Program from './Program.js';
 import cheapClone from '../utils/cheapClone.js';
 import getMouseOrTouch from '../utils/getMouseOrTouch.js';
 
-import { MOUSE, RESOLUTION, SURFACE_UNIFORMS } from './constants.js';
+import { MOUSE, MOUSEDRAG, RESOLUTION, SURFACE_UNIFORMS } from './constants.js';
 
 function Surface(element, program) {
   const canvas =
@@ -25,8 +25,9 @@ function Surface(element, program) {
     mousedown = true;
     const action = getMouseOrTouch(e);
     const { top, left, height } = rect;
-    ustate[MOUSE].toyvalue[2] = action[0] - Math.floor(left);
-    ustate[MOUSE].toyvalue[3] =
+    ustate[MOUSEDRAG].value[0] = ustate[MOUSEDRAG].value[2] =
+      action[0] - Math.floor(left);
+    ustate[MOUSEDRAG].value[1] = ustate[MOUSEDRAG].value[3] =
       Math.floor(height) - (action[1] - Math.floor(top));
   }
 
@@ -39,8 +40,8 @@ function Surface(element, program) {
         Math.floor(height) - (action[1] - Math.floor(top));
 
       if (mousedown) {
-        ustate[MOUSE].toyvalue[0] = ustate[MOUSE].value[0];
-        ustate[MOUSE].toyvalue[1] = ustate[MOUSE].value[1];
+        ustate[MOUSEDRAG].value[0] = ustate[MOUSE].value[0];
+        ustate[MOUSEDRAG].value[1] = ustate[MOUSE].value[1];
       }
 
       ticking = true;
@@ -49,8 +50,12 @@ function Surface(element, program) {
 
   function handleMouseUp(e) {
     mousedown = false;
-    ustate[MOUSE].toyvalue[2] = 0;
-    ustate[MOUSE].toyvalue[3] = 0;
+    if (Math.sign(ustate[MOUSEDRAG].value[2]) === 1) {
+      ustate[MOUSEDRAG].value[2] *= -1;
+    }
+    if (Math.sign(ustate[MOUSEDRAG].value[3]) === 1) {
+      ustate[MOUSEDRAG].value[3] *= -1;
+    }
   }
 
   function tick() {
