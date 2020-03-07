@@ -31,6 +31,7 @@ export const GLOBAL_UNIFORMS = [
 
 export const RESOLUTION = 0;
 export const MOUSE = 1;
+export const MOUSEDRAG = 2;
 export const SURFACE_UNIFORMS = [
   {
     name: 'u_resolution',
@@ -40,11 +41,15 @@ export const SURFACE_UNIFORMS = [
   },
   {
     name: 'u_mouse',
-    toyname: 'iMouse',
+    toyname: 'iCurrentMouse',
     type: 'vec2',
-    toytype: 'vec4',
     value: [0, 0],
-    toyvalue: [0, 0, 0, 0],
+  },
+  {
+    name: 'u_mousedrag',
+    toyname: 'iMouse',
+    type: 'vec4',
+    value: [0, 0, 0, 0],
   },
 ];
 
