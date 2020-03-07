@@ -66,6 +66,7 @@ Right now the api is fairly basic. The default syntax is vanilla glsl and there 
 * `uniform vec4 u_date;`: year, month, day and seconds
 * `uniform vec2 u_resolution;`: viewport resolution (in pixels)
 * `uniform vec2 u_mouse;`: mouse pixel coords (x & y)
+* `uniform vec4 u_mousedrag`: xy: last click or current drag position, zw: starting drag position (flipped negative when not mousedown)
 * `uniform vec3 u_orientation;`: [device orientation api](https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation) values: alpha, beta, gamma
 
 #### Shadertoy (`<shader-doodle shadertoy />`)
@@ -75,10 +76,11 @@ Right now the api is fairly basic. The default syntax is vanilla glsl and there 
 * `uniform int iFrame;`: shader playback frame
 * `uniform vec4 iDate;`: year, month, day and seconds
 * `uniform vec2 iResolution;`: viewport resolution (in pixels)
-* `uniform vec4 iMouse;`: -- mouse pixel coords. xy: current (if mousedown), zw: click.
+* `uniform vec2 iCurrentMouse;`: mouse pixel coords (x & y)
+* `uniform vec4 iMouse`: xy: last click or current drag position, zw: starting drag position (flipped negative when not mousedown)
 * `uniform vec3 iOrientation;`: [device orientation api](https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation) values: alpha, beta, gamma
 
-_NOTE: the only functional difference is in mouse position behavior_
+_NOTE: the slight difference in mouse uniform naming_
 
 ### Textures
 
