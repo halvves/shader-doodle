@@ -28,7 +28,7 @@
     "pretty-src": "prettier --write"
   },
   "devDependencies": {
-    "@ampproject/rollup-plugin-closure-compiler": "^0.8.5",
+    "@ampproject/rollup-plugin-closure-compiler": "^0.24.0",
     "@babel/core": "^7.6.4",
     "@babel/preset-env": "^7.6.3",
     "husky": "^2.7.0",
