@@ -158,6 +158,9 @@ export default function Program(gl, vs, fs, vertices, shadertoy = false) {
         const swap = framebuffer;
         framebuffer = prevbuffer;
         prevbuffer = swap;
+
+        prevbuffer.bind();
+        prevbuffer.updateResolution(w, h);
       }
 
       framebuffer.updateResolution(w, h);
