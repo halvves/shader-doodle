@@ -1,5 +1,7 @@
-import DeviceOrientationManager from '../inputs/DeviceOrientationManager.js';
 import AudioContextResume from '../utils/AudioContextResume.js';
+import DeviceOrientationManager from '../inputs/DeviceOrientationManager.js';
+
+import Extensions from './Extensions.js';
 
 import cheapClone from '../utils/cheapClone.js';
 
@@ -26,6 +28,12 @@ function Renderer() {
   const surfaces = new Set();
 
   const ustate = cheapClone(GLOBAL_UNIFORMS);
+
+  const extensions = Extensions(gl);
+  extensions.get('OES_texture_float');
+  extensions.get('OES_texture_float_linear');
+  extensions.get('OES_texture_half_float');
+  extensions.get('OES_texture_half_float_linear');
 
   function setSize(w, h) {
     if (w !== width) {
