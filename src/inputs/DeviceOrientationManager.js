@@ -11,7 +11,10 @@ function DeviceOrientation() {
     if (orientationRequested) return;
     orientationRequested = true;
 
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    if (
+      typeof DeviceOrientationEvent === 'object' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function'
+    ) {
       DeviceOrientationEvent.requestPermission()
         .then(perms => {
           if (perms === 'granted') {
