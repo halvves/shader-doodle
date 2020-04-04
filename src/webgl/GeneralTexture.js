@@ -5,9 +5,9 @@ const VIDEO = 1;
 const CAMERA = 2;
 const CANVAS = 3;
 
-const IMG_REG = /(\.jpg|\.jpeg|\.png|\.gif|\.bmp)$/i;
+const IMG_REG = /\w+\.(jpg|jpeg|png|gif|bmp)(?=\?|$)/i;
 const isImage = s => IMG_REG.test(s);
-const VID_REG = /(\.mp4|\.3gp|\.webm|\.ogv)$/i;
+const VID_REG = /\w+\.(mp4|3gp|webm|ogv)(?=\?|$)/i;
 const isVideo = s => VID_REG.test(s);
 
 function addHiddenInDOM(video) {
