@@ -10,6 +10,18 @@ const isImage = s => IMG_REG.test(s);
 const VID_REG = /(\.mp4|\.3gp|\.webm|\.ogv)$/i;
 const isVideo = s => VID_REG.test(s);
 
+function addHiddenInDOM(video) {
+  const wrapper = document.createElement('div');
+  wrapper.style.width = wrapper.style.height = '1px';
+  wrapper.style.overflow = 'hidden';
+  wrapper.style.position = 'absolute';
+  wrapper.style.opacity = '0';
+  wrapper.style.pointerEvents = 'none';
+  wrapper.style.zIndex = '-1000';
+  wrapper.appendChild(video);
+  document.body.appendChild(wrapper);
+}
+
 export default function GeneralTexture(
   renderer,
   textureUnit,
@@ -101,16 +113,7 @@ export default function GeneralTexture(
     source.playsInline = true;
     source.crossOrigin = 'anonymous';
     source.src = src;
-
-    const wrapper = document.createElement('div');
-    wrapper.style.width = wrapper.style.height = '1px';
-    wrapper.style.overflow = 'hidden';
-    wrapper.style.position = 'absolute';
-    wrapper.style.opacity = '0';
-    wrapper.style.pointerEvents = 'none';
-    wrapper.style.zIndex = '-1000';
-    wrapper.appendChild(source);
-    document.body.appendChild(wrapper);
+    addHiddenInDOM(source);
 
     videoOnSetup();
     source.play();
@@ -138,6 +141,8 @@ export default function GeneralTexture(
       source.height = 240;
       source.autoplay = true;
       source.srcObject = stream;
+      addHiddenInDOM(source);
+
       videoOnSetup();
     };
 
