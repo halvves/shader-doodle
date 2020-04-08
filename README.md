@@ -2,7 +2,10 @@
 
 *A friendly web-component for writing and rendering shaders.*
 
-![demo](screenshot/ex.gif)
+[![hello shader-doodle](screenshot/hello.gif)](https://hello-shader-doodle.glitch.me) [![fire rings](screenshot/fire-rings.gif)](https://codepen.io/pjkarlik/pen/abOVwaB) [![contrast bath](screenshot/contrast-bath.gif)](https://codepen.io/halvves/pen/xxGXdRv)
+[![audiovisualizer w/ feedback](screenshot/audio-visualizer.gif)](https://codepen.io/halvves/pen/abOwJbR) [![rainbow woozy](screenshot/rainbow-woozy.gif)](https://codepen.io/halvves/pen/WNbgvNx) [![vertigo truchet tiles](screenshot/vertigo-truchet-tiles.gif)](https://codepen.io/pjkarlik/pen/yLNEoBK)
+[![raymarching + clouds](screenshot/raymarching-clouds.gif)](https://codepen.io/mhazani/pen/VwwQYvE) [![audio reactive](screenshot/audio-reactive.gif)](https://codepen.io/pjkarlik/pen/JjdVmqv) [![space flame orb](screenshot/space-flame-orb.gif)](https://codepen.io/pjkarlik/pen/poJYLea)
+[![spooky](screenshot/spooky.gif)](https://codepen.io/halvves/pen/dyyvrxN) [![vhs webcam](screenshot/webcam.gif)](https://codepen.io/halvves/pen/VwwdQEN) [![audio + mouse](screenshot/audio-mouse.gif)](https://codepen.io/halvves/pen/PoqGvVG)
 
 NOTE: this README and branch are for the new `<shader-doodle />` alpha. To view the current stable version go to the [v0 branch](https://github.com/shader-doodle/shader-doodle/tree/v0).
 
