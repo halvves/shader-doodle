@@ -186,7 +186,7 @@ export default function GeneralTexture(
     if (shouldUpdate()) {
       texture.update({ pixels: source });
     } else {
-      texture.bind();
+      texture.shallow();
     }
   }
 
