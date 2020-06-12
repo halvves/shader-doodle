@@ -8,6 +8,7 @@ export default function Texture(gl, textureUnit, optsParam = {}) {
   const textureObject = gl.createTexture();
 
   const options = {};
+  const parameters = [];
   let px;
   let pow2canvas;
 
@@ -53,9 +54,22 @@ export default function Texture(gl, textureUnit, optsParam = {}) {
 
   function setParameters(params) {
     activate();
-    params.forEach(([p, val]) => {
-      gl.texParameteri(TEXTURE_2D, p, val);
+    parameters.length = 0;
+    params.forEach(p => {
+      parameters.push(p);
+      gl.texParameteri(TEXTURE_2D, p[0], p[1]);
     });
+  }
+
+  function updateParameters() {
+    parameters.forEach(p => {
+      gl.texParameteri(TEXTURE_2D, p[0], p[1]);
+    });
+  }
+
+  function shallow() {
+    bind();
+    updateParameters();
   }
 
   function update(opts) {
@@ -79,6 +93,8 @@ export default function Texture(gl, textureUnit, optsParam = {}) {
       buffer,
       pixels,
     } = options;
+
+    updateParameters();
 
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
 
@@ -153,8 +169,8 @@ export default function Texture(gl, textureUnit, optsParam = {}) {
   );
 
   return {
-    bind,
     setParameters,
+    shallow,
     update,
     dispose,
   };
