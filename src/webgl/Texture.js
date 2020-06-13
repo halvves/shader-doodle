@@ -99,6 +99,14 @@ export default function Texture(gl, textureUnit, optsParam = {}) {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
 
     if (pixels) {
+      if (pixels.width === 0 || pixels.height === 0) {
+        console.warn(
+          `Texture size is invalid ${pixels.width} x ${pixels.height}. Update is skipped;`
+        );
+
+        return;
+      }
+
       checkPow2();
     }
 
