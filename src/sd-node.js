@@ -71,6 +71,32 @@ class SDNodeElement extends SDBaseElement {
     this.setAttribute('vertices', JSON.stringify(v));
   }
 
+  get forcedHeight() {
+    let h = this.getAttribute('data-forced-height');
+    if (!h) return -1;
+    return parseInt(h);
+  }
+
+  set forcedHeight(h) {
+    let height = parseInt(h);
+    if (!h || !Number.isInteger(height)) return;
+
+    this.setAttribute('data-forced-height', h);
+  }
+
+  get forcedWidth() {
+    let h = this.getAttribute('data-forced-width');
+    if (!h) return -1;
+    return parseInt(h);
+  }
+
+  set forcedWidth(h) {
+    let width = parseInt(h);
+    if (!h || !Number.isInteger(width)) return;
+
+    this.setAttribute('data-forced-width', h);
+  }
+
   async init(parentProgram) {
     if (parentProgram && !this.name) {
       this.name = `${UNNAMED_NODE_PREFIX}${unnamedNodeIndex++}`;

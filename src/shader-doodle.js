@@ -34,7 +34,7 @@ class ShaderDoodleElement extends SDNodeElement {
 
     await super.init();
 
-    this.surface = Surface(canvas, this.program);
+    this.surface = Surface(canvas, this.program, this);
     this.renderer.addSurface(this.surface);
   }
 }
