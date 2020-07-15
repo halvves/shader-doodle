@@ -177,7 +177,9 @@ export default function Program(gl, vs, fs, vertices, shadertoy = false) {
   }
 
   function dispose() {
-    textures.forEach(t => t.dispose());
+    textures.forEach(t => {
+      if (typeof t.dispose === 'function') t.dispose();
+    });
     textures.clear();
     gl.deleteProgram(program);
   }

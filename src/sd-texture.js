@@ -41,7 +41,8 @@ class TextureElement extends SDBaseElement {
 
   disconnectedCallback() {
     this.program.removeTexture(this.texture);
-    this.texture.dispose();
+    // Dispose doesn't seem to exist on this object. A TODO?
+    if (typeof this.texture.dispose === 'function') this.texture.dispose();
   }
 
   get forceUpdate() {
