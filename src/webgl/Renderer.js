@@ -142,7 +142,7 @@ Renderer.singleton = function() {
 };
 
 Renderer.resetSingleton = function() {
-  singletonRenderer.dispose();
+  if (singletonRenderer) singletonRenderer.dispose();
   singletonRenderer = Renderer();
 };
 
