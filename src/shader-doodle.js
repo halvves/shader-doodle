@@ -2,6 +2,7 @@ import Template from './template.js';
 import SDNodeElement from './sd-node.js';
 import './sd-audio.js';
 import './sd-texture.js';
+import './sd-uniform.js';
 
 import Surface from './webgl/Surface.js';
 import Renderer from './webgl/Renderer.js';
