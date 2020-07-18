@@ -7,9 +7,49 @@ class SDUniformElement extends SDBaseElement {
     return parseFloat(this.getAttribute('x'));
   }
 
-  set x(newX) {
-    if (newX != null) this.setAttribute('x', newX);
+  set x(newx) {
+    if (newx != null) this.setAttribute('x', newx);
     else this.removeAttribute('x');
+  }
+
+  get y() {
+    return parseFloat(this.getAttribute('y'));
+  }
+
+  set y(newy) {
+    if (newy != null) this.setAttribute('y', newy);
+    else this.removeAttribute('y');
+  }
+
+  get z() {
+    return parseFloat(this.getAttribute('z'));
+  }
+
+  set z(newz) {
+    if (newz != null) this.setAttribute('z', newz);
+    else this.removeAttribute('z');
+  }
+
+  get w() {
+    return parseFloat(this.getAttribute('w'));
+  }
+
+  set w(neww) {
+    if (neww != null) this.setAttribute('w', neww);
+    else this.removeAttribute('w');
+  }
+
+  getValue() {
+    switch (this.type) {
+      case 'vec2':
+        return [this.x, this.y];
+      case 'vec3':
+        return [this.x, this.y, this.z];
+      case 'vec4':
+        return [this.x, this.y, this.z, this.w];
+      default:
+        return this.x;
+    }
   }
 
   get type() {
@@ -22,13 +62,17 @@ class SDUniformElement extends SDBaseElement {
   }
 
   static get observedAttributes() {
-    return ['x'];
+    return ['x', 'y', 'z', 'w'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
     switch (name) {
       case 'x':
-        if (newValue != null) this.renderer.setUniform(this.name, newValue);
+      case 'y':
+      case 'z':
+      case 'w':
+        if (newValue != null)
+          this.renderer.setUniform(this.name, this.getValue());
         break;
     }
   }
@@ -40,7 +84,7 @@ class SDUniformElement extends SDBaseElement {
     }
 
     this.program = program;
-    this.renderer.addUniform(this.name, this.x, this.type);
+    this.renderer.addUniform(this.name, this.getValue(), this.type);
   }
 }
 
