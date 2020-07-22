@@ -25,7 +25,7 @@ function Renderer() {
   let animationFrame;
   let lastTime;
 
-  const surfaces = new Set();
+  let surfaces = new Set();
 
   const ustate = cheapClone(GLOBAL_UNIFORMS);
   /* TODO UNIFORM*/
