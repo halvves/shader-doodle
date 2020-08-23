@@ -28,9 +28,10 @@ function Renderer() {
   let animationFrame;
   let lastTime;
 
-  const surfaces = new Set();
+  let surfaces = new Set();
 
   const ustate = cheapClone(GLOBAL_UNIFORMS);
+  /* TODO UNIFORM*/
 
   const extensions = Extensions(gl);
   extensions.get('OES_texture_float');
@@ -109,6 +110,24 @@ function Renderer() {
     surfaces.delete(surface);
   }
 
+  function addUniform(name, value, type) {
+    ustate.push({
+      name,
+      value,
+      type,
+      toyname: name,
+    });
+  }
+
+  function setUniform(name, value) {
+    for (let i = 0; i < ustate.length; i++) {
+      if (ustate[i].name === name) {
+        ustate[i].value = value;
+        break;
+      }
+    }
+  }
+
   function dispose() {
     surfaces.forEach(s => s.dispose());
     surfaces.clear();
@@ -131,6 +150,8 @@ function Renderer() {
     },
     addSurface,
     removeSurface,
+    addUniform,
+    setUniform,
     dispose,
   });
 }
@@ -145,7 +166,7 @@ Renderer.singleton = function() {
 };
 
 Renderer.resetSingleton = function() {
-  singletonRenderer.dispose();
+  if (singletonRenderer) singletonRenderer.dispose();
   singletonRenderer = Renderer();
 };
 
