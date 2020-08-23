@@ -7,6 +7,10 @@ import './sd-uniform.js';
 import Surface from './webgl/Surface.js';
 
 class ShaderDoodleElement extends SDNodeElement {
+  static get observedAttributes() {
+    return ['height', 'width'];
+  }
+
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
@@ -27,6 +31,15 @@ class ShaderDoodleElement extends SDNodeElement {
     this.renderer.removeSurface(this.surface);
     this.surface.dispose();
     this.surface = undefined;
+  }
+
+  attributeChangedCallback(name) {
+    if (name === 'height' || name === 'width') {
+      const val = this[name];
+      this.shadow.styleSheets[0].cssRules[0].style[name] = Number.isInteger(val)
+        ? `${val}px`
+        : '250px';
+    }
   }
 
   get height() {
@@ -56,7 +69,7 @@ class ShaderDoodleElement extends SDNodeElement {
   }
 
   async init() {
-    this.shadow.innerHTML = Template.render();
+    this.shadow.innerHTML = Template.render(this.width, this.height);
     this.canvas = Template.map(this.shadow).canvas;
 
     await super.init();

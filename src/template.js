@@ -1,6 +1,6 @@
 export default {
-  render() {
-    return `${this.css()}
+  render(w, h) {
+    return `${this.css(w, h)}
             ${this.html()}`;
   },
 
@@ -14,13 +14,13 @@ export default {
     return `<canvas></canvas>`;
   },
 
-  css() {
+  css(w, h) {
     return `<style>
       :host {
         position: relative;
         display: inline-block;
-        width: 250px;
-        height: 250px;
+        width: ${w || 250}px;
+        height: ${h || 250}px;
       }
       :host > canvas {
         position: absolute;
@@ -29,7 +29,7 @@ export default {
         height: 100%;
         width: 100%;
         border-radius: inherit;
-       }
+      }
     </style>`;
   },
 };
