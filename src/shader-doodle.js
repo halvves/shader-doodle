@@ -5,7 +5,6 @@ import './sd-texture.js';
 import './sd-uniform.js';
 
 import Surface from './webgl/Surface.js';
-import Renderer from './webgl/Renderer.js';
 
 class ShaderDoodleElement extends SDNodeElement {
   constructor() {
@@ -30,14 +29,39 @@ class ShaderDoodleElement extends SDNodeElement {
     this.surface = undefined;
   }
 
+  get height() {
+    const height = parseInt(this.getAttribute('height'));
+
+    return Number.isInteger(height) ? height : undefined;
+  }
+
+  set height(h) {
+    const height = parseInt(h);
+    if (!Number.isInteger(height)) return;
+
+    this.setAttribute('height', h);
+  }
+
+  get width() {
+    const width = parseInt(this.getAttribute('width'));
+
+    return Number.isInteger(width) ? width : undefined;
+  }
+
+  set width(w) {
+    const width = parseInt(w);
+    if (!Number.isInteger(width)) return;
+
+    this.setAttribute('width', width);
+  }
+
   async init() {
-    Renderer.resetSingleton();
     this.shadow.innerHTML = Template.render();
-    const canvas = Template.map(this.shadow).canvas;
+    this.canvas = Template.map(this.shadow).canvas;
 
     await super.init();
 
-    this.surface = Surface(canvas, this.program, this);
+    this.surface = Surface(this);
     this.renderer.addSurface(this.surface);
   }
 }

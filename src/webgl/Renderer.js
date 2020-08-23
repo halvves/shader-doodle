@@ -18,7 +18,7 @@ function Renderer() {
   const wa = new (window.AudioContext || window.webkitAudioContext)();
   const audioCtxResume = new AudioContextResume(wa);
   wa.onStart = audioCtxResume.onStart;
-  
+
   gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
   gl.enable(gl.BLEND);
 
