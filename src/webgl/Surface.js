@@ -5,7 +5,7 @@ import getMouseOrTouch from '../utils/getMouseOrTouch.js';
 
 import { MOUSE, MOUSEDRAG, RESOLUTION, SURFACE_UNIFORMS } from './constants.js';
 
-function Surface(element, program) {
+function Surface(element, program, sdNode) {
   const canvas =
     element instanceof HTMLCanvasElement
       ? element
@@ -74,15 +74,24 @@ function Surface(element, program) {
       newRect.right - newRect.width <=
         (window.innerWidth || document.documentElement.clientWidth);
 
-    if (newRect.width !== rect.width) {
-      canvas.width = ustate[RESOLUTION].value[0] = newRect.width;
+    const h =
+      sdNode.forcedHeight && sdNode.forcedHeight > 0
+        ? sdNode.forcedHeight
+        : newRect.height;
+    const w =
+      sdNode.forcedWidth && sdNode.forcedWidth > 0
+        ? sdNode.forcedWidth
+        : newRect.width;
+
+    if (w !== rect.width) {
+      canvas.width = ustate[RESOLUTION].value[0] = w;
     }
 
-    if (newRect.height !== rect.height) {
-      canvas.height = ustate[RESOLUTION].value[1] = newRect.height;
+    if (h !== rect.height) {
+      canvas.height = ustate[RESOLUTION].value[1] = h;
     }
 
-    rect = newRect;
+    rect = { width: canvas.width, height: canvas.height };
   }
 
   function render(

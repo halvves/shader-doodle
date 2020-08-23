@@ -2,8 +2,10 @@ import Template from './template.js';
 import SDNodeElement from './sd-node.js';
 import './sd-audio.js';
 import './sd-texture.js';
+import './sd-uniform.js';
 
 import Surface from './webgl/Surface.js';
+import Renderer from './webgl/Renderer.js';
 
 class ShaderDoodleElement extends SDNodeElement {
   constructor() {
@@ -29,12 +31,13 @@ class ShaderDoodleElement extends SDNodeElement {
   }
 
   async init() {
+    Renderer.resetSingleton();
     this.shadow.innerHTML = Template.render();
     const canvas = Template.map(this.shadow).canvas;
 
     await super.init();
 
-    this.surface = Surface(canvas, this.program);
+    this.surface = Surface(canvas, this.program, this);
     this.renderer.addSurface(this.surface);
   }
 }
