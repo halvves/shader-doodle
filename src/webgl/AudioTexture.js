@@ -140,6 +140,10 @@ function AudioTexture(
     }
   }
 
+  function dispose() {
+    texture.dispose();
+  }
+
   // TODO: mic support
   /* if (mic) {
     setupMic();
@@ -154,6 +158,7 @@ function AudioTexture(
   }
 
   return {
+    dispose,
     update,
   };
 }
