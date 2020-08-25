@@ -14,11 +14,12 @@ class ShaderDoodleElement extends SDNodeElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
-    this.shadow.innerHTML = Template.render(this.width, this.height);
-    this.canvas = Template.map(this.shadow).canvas;
   }
 
   connectedCallback() {
+    this.shadow.innerHTML = Template.render(this.width, this.height);
+    this.canvas = Template.map(this.shadow).canvas;
+
     setTimeout(() => {
       try {
         this.init();
@@ -36,9 +37,10 @@ class ShaderDoodleElement extends SDNodeElement {
   }
 
   attributeChangedCallback(name) {
-    if (name === 'height' || name === 'width') {
+    const styles = this.shadow.styleSheets;
+    if ((name === 'height' || name === 'width') && styles.length > 0) {
       const val = this[name];
-      this.shadow.styleSheets[0].cssRules[0].style[name] = Number.isInteger(val)
+      styles[0].cssRules[0].style[name] = Number.isInteger(val)
         ? `${val}px`
         : '250px';
     }
