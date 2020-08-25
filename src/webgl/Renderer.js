@@ -78,6 +78,7 @@ function Renderer() {
 
   function render(timestamp) {
     if (!surfaces.size) {
+      animationFrame = undefined;
       return;
     }
 
