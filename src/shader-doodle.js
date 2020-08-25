@@ -17,6 +17,9 @@ class ShaderDoodleElement extends SDNodeElement {
   }
 
   connectedCallback() {
+    this.shadow.innerHTML = Template.render(this.width, this.height);
+    this.canvas = Template.map(this.shadow).canvas;
+
     setTimeout(() => {
       try {
         this.init();
@@ -69,9 +72,6 @@ class ShaderDoodleElement extends SDNodeElement {
   }
 
   async init() {
-    this.shadow.innerHTML = Template.render(this.width, this.height);
-    this.canvas = Template.map(this.shadow).canvas;
-
     await super.init();
 
     this.surface = Surface(this);
