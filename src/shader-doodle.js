@@ -14,12 +14,11 @@ class ShaderDoodleElement extends SDNodeElement {
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
+    this.shadow.innerHTML = Template.render(this.width, this.height);
+    this.canvas = Template.map(this.shadow).canvas;
   }
 
   connectedCallback() {
-    this.shadow.innerHTML = Template.render(this.width, this.height);
-    this.canvas = Template.map(this.shadow).canvas;
-
     setTimeout(() => {
       try {
         this.init();
