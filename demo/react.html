@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script
+      crossorigin
+      src="https://unpkg.com/react@16/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"
+    ></script>
+    <script type="module" src="../src/shader-doodle.js"></script>
+    <style>
+      shader-doodle {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const fs = `
+      uniform sampler2D u_texture0;
+
+      void main() {
+        vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+        float distortion = sin(uv.y * 50.0 + u_time * 5.0) * 0.01;
+        vec4 texture = texture2D(u_texture0, vec2(
+          uv.x + distortion * u_mouse.x / 100.,
+          uv.y + distortion * u_mouse.y / 100.
+        ));
+
+        gl_FragColor = texture;
+      }`;
+
+      const App = () => {
+        const [width, setWidth] = React.useState(500);
+        const [imgSrc, setImgSrc] = React.useState('image.jpg');
+
+        return React.createElement(React.Fragment, {}, [
+          React.createElement(
+            'shader-doodle',
+            { key: imgSrc, height: 300, width },
+            [
+              React.createElement('sd-texture', {
+                key: 'texture',
+                src: imgSrc,
+              }),
+              React.createElement(
+                'script',
+                { key: 'main-fs', type: 'x-shader/x-fragment' },
+                fs
+              ),
+            ]
+          ),
+          React.createElement('input', {
+            key: 'width-input',
+            onChange: e => setWidth(parseInt(e.currentTarget.value)),
+            value: width,
+          }),
+          React.createElement(
+            'select',
+            {
+              key: 'img-select',
+              name: 'img',
+              onChange: e => setImgSrc(e.currentTarget.value),
+              value: imgSrc,
+            },
+            [
+              React.createElement(
+                'option',
+                { key: 'image.jpg', value: 'image.jpg' },
+                'image.jpg'
+              ),
+              React.createElement(
+                'option',
+                { key: 'noise.png', value: 'noise.png' },
+                'noise.png'
+              ),
+            ]
+          ),
+        ]);
+      };
+
+      ReactDOM.render(
+        React.createElement(App),
+        document.getElementById('root')
+      );
+    </script>
+  </body>
+</html>
