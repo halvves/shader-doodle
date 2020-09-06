@@ -305,7 +305,7 @@ Not yet implemented is a `mic` attribute that will allow using audio from a webr
 [npm-badge-url]: https://www.npmjs.com/package/shader-doodle/v/alpha
 [deps-badge]: https://img.shields.io/david/halvves/shader-doodle
 [deps-badge-url]: https://david-dm.org/halvves/shader-doodle
-[size-badge]: https://img.shields.io/bundlephobia/minzip/shader-doodle/1.0.0-alpha.18
-[size-badge-url]: https://bundlephobia.com/result?p=shader-doodle@1.0.0-alpha.18
+[size-badge]: https://img.shields.io/bundlephobia/minzip/shader-doodle/1.0.0-alpha.19
+[size-badge-url]: https://bundlephobia.com/result?p=shader-doodle@1.0.0-alpha.19
 [license-badge]: https://img.shields.io/github/license/halvves/shader-doodle
 [license-badge-url]: ./LICENSE

@@ -19,6 +19,9 @@ function Renderer() {
   const audioCtxResume = new AudioContextResume(wa);
   wa.onStart = audioCtxResume.onStart;
 
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND);
+
   let width = 0;
   let height = 0;
   let pixelRatio = 1;
@@ -75,6 +78,7 @@ function Renderer() {
 
   function render(timestamp) {
     if (!surfaces.size) {
+      animationFrame = undefined;
       return;
     }
 
