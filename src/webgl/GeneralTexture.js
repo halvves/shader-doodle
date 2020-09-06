@@ -190,6 +190,10 @@ export default function GeneralTexture(
     }
   }
 
+  function dispose() {
+    texture.dispose();
+  }
+
   // init
   if (webcam) {
     setupCamera();
@@ -202,6 +206,7 @@ export default function GeneralTexture(
   }
 
   return {
+    dispose,
     update,
   };
 }

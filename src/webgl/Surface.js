@@ -5,12 +5,13 @@ import getMouseOrTouch from '../utils/getMouseOrTouch.js';
 
 import { MOUSE, MOUSEDRAG, RESOLUTION, SURFACE_UNIFORMS } from './constants.js';
 
-function Surface(element, program, sdNode) {
+function Surface(element) {
   const canvas =
-    element instanceof HTMLCanvasElement
-      ? element
+    element.canvas instanceof HTMLCanvasElement
+      ? element.canvas
       : document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
   const ctx2d = canvas.getContext('2d');
+  const program = element.program;
 
   const clickCallbacks = new Set();
   const ustate = cheapClone(SURFACE_UNIFORMS);
@@ -74,24 +75,18 @@ function Surface(element, program, sdNode) {
       newRect.right - newRect.width <=
         (window.innerWidth || document.documentElement.clientWidth);
 
-    const h =
-      sdNode.forcedHeight && sdNode.forcedHeight > 0
-        ? sdNode.forcedHeight
-        : newRect.height;
-    const w =
-      sdNode.forcedWidth && sdNode.forcedWidth > 0
-        ? sdNode.forcedWidth
-        : newRect.width;
+    const h = element.height > 0 ? element.height : newRect.height;
+    const w = element.width > 0 ? element.width : newRect.width;
 
-    if (w !== rect.width) {
+    if (w !== ustate[RESOLUTION].value[0]) {
       canvas.width = ustate[RESOLUTION].value[0] = w;
     }
 
-    if (h !== rect.height) {
+    if (h !== ustate[RESOLUTION].value[1]) {
       canvas.height = ustate[RESOLUTION].value[1] = h;
     }
 
-    rect = { width: canvas.width, height: canvas.height };
+    rect = newRect;
   }
 
   function render(
@@ -105,8 +100,8 @@ function Surface(element, program, sdNode) {
     tick();
     if (!visible || !program) return;
 
-    const width = rect.width || 0;
-    const height = rect.height || 0;
+    const width = ustate[RESOLUTION].value[0] || 0;
+    const height = ustate[RESOLUTION].value[1] || 0;
     updateRendererSize(width, height);
 
     program.render(width, height, [...ustateArray, ...ustate]);
