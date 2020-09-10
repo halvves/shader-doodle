@@ -112,6 +112,13 @@ function Renderer() {
   }
 
   function addUniform(name, value, type) {
+    for (let i = 0; i < ustate.length; i++) {
+      if (ustate[i].name === name) {
+        ustate[i].value = value;
+        ustate[i].type = type;
+        return;
+      }
+    }
     ustate.push({
       name,
       value,
