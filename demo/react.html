@@ -23,10 +23,11 @@
     <script>
       const fs = `
       uniform sampler2D u_texture0;
+      uniform float noiseSpeed;
 
       void main() {
         vec2 uv = gl_FragCoord.xy / u_resolution.xy;
-        float distortion = sin(uv.y * 50.0 + u_time * 5.0) * 0.01;
+        float distortion = sin(uv.y * 50.0 + u_time * 10.0 * noiseSpeed) * 0.01;
         vec4 texture = texture2D(u_texture0, vec2(
           uv.x + distortion * u_mouse.x / 100.,
           uv.y + distortion * u_mouse.y / 100.
@@ -38,6 +39,7 @@
       const App = () => {
         const [width, setWidth] = React.useState(500);
         const [imgSrc, setImgSrc] = React.useState('image.jpg');
+        const [noiseSpeed, setNoiseSpeed] = React.useState(0.5);
 
         return React.createElement(React.Fragment, {}, [
           React.createElement(
@@ -48,6 +50,12 @@
                 key: 'texture',
                 src: imgSrc,
               }),
+              React.createElement('sd-uniform', {
+                key: 'uniform',
+                name: 'noiseSpeed',
+                x: noiseSpeed,
+                type: 'float',
+              }),
               React.createElement(
                 'script',
                 { key: 'main-fs', type: 'x-shader/x-fragment' },
@@ -57,6 +65,8 @@
           ),
           React.createElement('input', {
             key: 'width-input',
+            type: 'number',
+            step: 1,
             onChange: e => setWidth(parseInt(e.currentTarget.value)),
             value: width,
           }),
@@ -81,6 +91,14 @@
               ),
             ]
           ),
+          React.createElement('input', {
+            key: 'uniform-input',
+            type: 'number',
+            step: 0.1,
+            onChange: e =>
+              setNoiseSpeed(parseFloat(e.currentTarget.value) || 0),
+            value: noiseSpeed,
+          }),
         ]);
       };
 
