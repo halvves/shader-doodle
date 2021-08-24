@@ -32,7 +32,8 @@ export default function GeneralTexture(
   wrapT,
   minFilter,
   magFilter,
-  forceUpdate
+  forceUpdate,
+  shadowRoot
 ) {
   const gl = renderer.gl;
   const texture = Texture(gl, textureUnit);
@@ -53,7 +54,11 @@ export default function GeneralTexture(
 
   function setupElementReference() {
     try {
-      source = document.querySelector(src);
+      const selectedShadowRoot = document.querySelector(shadowRoot);
+      const root = selectedShadowRoot
+        ? selectedShadowRoot.shadowRoot
+        : document;
+      source = root.querySelector(src);
     } catch (e) {
       console.warn(`src: ${src}: invalid selector`);
     }

@@ -36,7 +36,15 @@ let unnamedTextureIndex = 0;
 
 class TextureElement extends SDBaseElement {
   static get observedAttributes() {
-    return ['mag-filter', 'min-filter', 'name', 'src', 'wrap-s', 'wrap-t'];
+    return [
+      'mag-filter',
+      'min-filter',
+      'name',
+      'shadow-root',
+      'src',
+      'wrap-s',
+      'wrap-t',
+    ];
   }
 
   disconnectedCallback() {
@@ -62,6 +70,14 @@ class TextureElement extends SDBaseElement {
 
   get minFilter() {
     return MIN_OPTIONS[this.getAttribute('min-filter')] || LINEAR_MIPMAP_LINEAR;
+  }
+
+  get shadowRoot() {
+    return this.getAttribute('shadow-root');
+  }
+
+  set shadowRoot(val) {
+    this.setAttribute('shadow-root', val);
   }
 
   get src() {
@@ -110,7 +126,8 @@ class TextureElement extends SDBaseElement {
       this.wrapT,
       this.minFilter,
       this.magFilter,
-      this.forceUpdate
+      this.forceUpdate,
+      this.shadowRoot
     );
     program.addTexture(this.texture);
   }
