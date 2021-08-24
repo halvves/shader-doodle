@@ -98,6 +98,7 @@ Textures can be used as a `sampler2D` in a shader by using the `<sd-texture />` 
 * `name`: specify a name for the texture uniform (will default to `u_texture{index}`)
 * `webcam`: overrides `src` and tries to use webrtc webcam as texture source
 * `force-update`: forces a texture to always update (useful when using a canvas animation or animated gif as a texture)
+* `shadow-root`: selector identifying a shadow-root to use for the `src` property. (Useful when using one shader-doodle as an image source for another shader-doodle, for example.)
 
 #### Examples
 
@@ -167,6 +168,23 @@ Textures can be used as a `sampler2D` in a shader by using the `<sd-texture />` 
     ctx.fillText(text, 0, i * canvas.height / 6);
   }
 </script>
+```
+
+##### Second Shader-Doodle
+```html
+<shader-doodle id="buffer0">
+  <!-- your doodle here -->
+</shader-doodle>
+
+<shader-doodle>
+  <sd-texture shadow-root="#buffer0" src="canvas" name="buffer0_canvas"></sd-texture>
+  <script type="x-shader/x-fragment">
+    uniform sampler2D buffer0_canvas;
+
+    // use first doodle as an image here
+
+    </script>
+  </shader-doodle>
 ```
 
 ##### Camera:
