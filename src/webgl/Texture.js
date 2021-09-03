@@ -1,3 +1,5 @@
+import getSourceDimensions from '../utils/getSourceDimensions.js';
+
 const PIXEL = new Uint8Array([0, 0, 0, 255]);
 
 const isPow2 = value => !(value & (value - 1)) && !!value;
@@ -99,10 +101,9 @@ export default function Texture(gl, textureUnit, optsParam = {}) {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flipY);
 
     if (pixels) {
-      if (pixels.width === 0 || pixels.height === 0) {
-        console.warn(
-          `Texture size is invalid ${pixels.width} x ${pixels.height}. Update is skipped;`
-        );
+      const [w, h] = getSourceDimensions(pixels);
+      if (w === 0 || h === 0) {
+        console.warn(`Texture size is invalid ${w} x ${h}. Update is skipped;`);
 
         return;
       }
