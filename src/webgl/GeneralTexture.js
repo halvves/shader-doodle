@@ -1,4 +1,5 @@
 import Texture from './Texture.js';
+import getSourceDimensions from '../utils/getSourceDimensions.js';
 
 const IMAGE = 0;
 const VIDEO = 1;
@@ -72,7 +73,6 @@ export default function GeneralTexture(
       }
     } else if (source instanceof HTMLVideoElement) {
       type = VIDEO;
-      videoOnSetup();
     } else if (source instanceof HTMLCanvasElement) {
       type = CANVAS;
       imageOnload();
@@ -114,12 +114,13 @@ export default function GeneralTexture(
     source.crossOrigin = 'anonymous';
     source.src = src;
     addHiddenInDOM(source);
-
-    videoOnSetup();
     source.play();
   }
 
+  let hasVideoSetup = false;
   function videoOnSetup() {
+    if (hasVideoSetup) return;
+    hasVideoSetup = true;
     updateResolution();
     texture.setParameters([
       [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE],
@@ -142,8 +143,6 @@ export default function GeneralTexture(
       source.autoplay = true;
       source.srcObject = stream;
       addHiddenInDOM(source);
-
-      videoOnSetup();
     };
 
     const initCam = () => {
@@ -166,8 +165,9 @@ export default function GeneralTexture(
 
   function updateResolution() {
     if (source) {
-      ustate[1].value[0] = source.width;
-      ustate[1].value[1] = source.height;
+      const [w, h] = getSourceDimensions(source);
+      ustate[1].value[0] = w;
+      ustate[1].value[1] = h;
     }
   }
 
@@ -184,6 +184,7 @@ export default function GeneralTexture(
     ustate.forEach(updateSingleUniform);
 
     if (shouldUpdate()) {
+      videoOnSetup();
       texture.update({ pixels: source });
     } else {
       texture.shallow();
