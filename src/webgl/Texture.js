@@ -51,7 +51,7 @@ export default function Texture(gl, textureUnit, optsParam = {}) {
       ctx.drawImage(pixels, 0, 0, pow2canvas.width, pow2canvas.height);
     }
 
-    px = pow2canvas || pixels;
+    px = (needsPowerOfTwo && pow2canvas) || pixels;
   }
 
   function setParameters(params) {

@@ -1,5 +1,6 @@
 import Texture from './Texture.js';
 import getSourceDimensions from '../utils/getSourceDimensions.js';
+import { ShaderDoodleElement } from '../shader-doodle.js';
 
 const IMAGE = 0;
 const VIDEO = 1;
@@ -74,6 +75,10 @@ export default function GeneralTexture(
     } else if (source instanceof HTMLVideoElement) {
       type = VIDEO;
     } else if (source instanceof HTMLCanvasElement) {
+      type = CANVAS;
+      imageOnload();
+    } else if (source instanceof ShaderDoodleElement) {
+      source = source.surface.dom;
       type = CANVAS;
       imageOnload();
     } else {
@@ -171,12 +176,16 @@ export default function GeneralTexture(
     }
   }
 
+  function isSourceVideo() {
+    return (
+      (type === CAMERA || type === VIDEO) && source instanceof HTMLVideoElement
+    );
+  }
+
   function shouldUpdate() {
     return (
       forceUpdate ||
-      ((type === CAMERA || type === VIDEO) &&
-        source instanceof HTMLVideoElement &&
-        source.readyState === source.HAVE_ENOUGH_DATA)
+      (isSourceVideo() && source.readyState === source.HAVE_ENOUGH_DATA)
     );
   }
 
@@ -184,7 +193,7 @@ export default function GeneralTexture(
     ustate.forEach(updateSingleUniform);
 
     if (shouldUpdate()) {
-      videoOnSetup();
+      if (isSourceVideo()) videoOnSetup();
       texture.update({ pixels: source });
     } else {
       texture.shallow();
