@@ -176,12 +176,16 @@ export default function GeneralTexture(
     }
   }
 
+  function isSourceVideo() {
+    return (
+      (type === CAMERA || type === VIDEO) && source instanceof HTMLVideoElement
+    );
+  }
+
   function shouldUpdate() {
     return (
       forceUpdate ||
-      ((type === CAMERA || type === VIDEO) &&
-        source instanceof HTMLVideoElement &&
-        source.readyState === source.HAVE_ENOUGH_DATA)
+      (isSourceVideo() && source.readyState === source.HAVE_ENOUGH_DATA)
     );
   }
 
@@ -189,7 +193,7 @@ export default function GeneralTexture(
     ustate.forEach(updateSingleUniform);
 
     if (shouldUpdate()) {
-      videoOnSetup();
+      if (isSourceVideo()) videoOnSetup();
       texture.update({ pixels: source });
     } else {
       texture.shallow();
