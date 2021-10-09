@@ -80,6 +80,8 @@ class ShaderDoodleElement extends SDNodeElement {
   }
 }
 
+export { ShaderDoodleElement };
+
 if (!customElements.get('shader-doodle')) {
   customElements.define('shader-doodle', ShaderDoodleElement);
 }

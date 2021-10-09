@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Shader Doodle Demo</title>
+    <script type="module" src="../src/shader-doodle.js"></script>
+  </head>
+
+  <body>
+    <shader-doodle id="buffer">
+      <script type="x-shader/x-fragment">
+        void main() {
+          vec2 st = gl_FragCoord.xy / u_resolution.xy;
+          vec3 color = vec3(st.x, st.y, abs(sin(u_time)));
+
+          gl_FragColor = vec4(color, 1.0);
+        }
+      </script>
+    </shader-doodle>
+    <shader-doodle>
+      <sd-texture
+        src="#buffer"
+        min-filter="LINEAR"
+        wrap-s="MIRRORED_REPEAT"
+        wrap-t="MIRRORED_REPEAT"
+        force-update
+      ></sd-texture>
+      <script type="x-shader/x-fragment">
+        uniform sampler2D u_texture0;
+
+        void main() {
+          vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+          uv.y += u_time * .5;
+          uv.x += sin(uv.y * 2. + u_time * 2.) * .4 * sin(u_time * .5);
+          vec4 texture = texture2D(u_texture0, uv);
+
+          gl_FragColor = texture;
+        }
+      </script>
+    </shader-doodle>
+  </body>
+</html>
