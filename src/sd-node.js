@@ -21,8 +21,15 @@ let unnamedNodeIndex = 0;
 
 class SDNodeElement extends SDBaseElement {
   disconnectedCallback() {
-    this.program.dispose();
-    this.program = undefined;
+    if (this.parentProgram && this.program) {
+      this.parentProgram.removeNode(this.program);
+    }
+    this.parentProgram = undefined;
+
+    if (this.program) {
+      this.program.dispose();
+      this.program = undefined;
+    }
   }
 
   get shadertoy() {
@@ -99,6 +106,9 @@ class SDNodeElement extends SDBaseElement {
 
     vs = vs || DEFAULT_VS;
 
+    // removed while init was awaiting
+    if (!this.isConnected) return;
+
     this.program = Program(
       this.renderer.gl,
       vs,
@@ -112,6 +122,7 @@ class SDNodeElement extends SDBaseElement {
     });
 
     if (parentProgram) {
+      this.parentProgram = parentProgram;
       parentProgram.addNode(this.program, this.name, this.prevbuffer);
     }
   }

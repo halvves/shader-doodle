@@ -108,6 +108,7 @@ function Renderer() {
   }
 
   function removeSurface(surface) {
+    audioCtxResume.unregister(surface.dom);
     surfaces.delete(surface);
   }
 
@@ -143,7 +144,10 @@ function Renderer() {
     cancelAnimationFrame(animationFrame);
     deviceorientation.dispose();
     audioCtxResume.dispose();
-    // TODO: any other cleanup??
+
+    const loseContext = extensions.get('WEBGL_lose_context');
+    if (loseContext) loseContext.loseContext();
+    if (typeof wa.close === 'function') wa.close();
   }
 
   // TODO: not sure if this is where i should actually handle clearColor()

@@ -6,8 +6,12 @@ let unnamedAudioIndex = 0;
 
 class SDAudioElement extends SDBaseElement {
   disconnectedCallback() {
-    this.program.removeTexture(this.texture);
-    this.texture.dispose();
+    if (this.texture) {
+      if (this.program) this.program.removeTexture(this.texture);
+      this.texture.dispose();
+      this.texture = undefined;
+    }
+    this.program = undefined;
   }
 
   get src() {

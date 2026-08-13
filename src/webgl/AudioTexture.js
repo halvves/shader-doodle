@@ -25,6 +25,10 @@ function asyncDecodeAudioBuffer(buf, wa) {
   });
 }
 
+// a media element can only ever be captured once, so source nodes are
+// cached for reuse across mounts
+const elementSources = new WeakMap();
+
 function AudioTexture(
   renderer,
   textureUnit,
@@ -60,6 +64,7 @@ function AudioTexture(
   let element;
   let source;
   let isFile = false;
+  let disposed = false;
 
   const ustate = [
     {
@@ -90,6 +95,8 @@ function AudioTexture(
       await asyncFetchAudioBuffer(src),
       wa
     );
+    // disposed while fetching/decoding
+    if (disposed) return;
     source.loop = loop;
     source.start();
     isFile = true;
@@ -97,10 +104,34 @@ function AudioTexture(
 
   function setupAudioElement() {
     const audioElement = document.querySelector(src);
-    if (audioElement && audioElement instanceof HTMLAudioElement) {
-      element = audioElement;
-      source = wa.createMediaElementSource(audioElement);
+    if (!(audioElement instanceof HTMLAudioElement)) return;
+
+    let entry = elementSources.get(audioElement);
+    if (entry && entry.node.context !== wa) {
+      console.warn(`src: ${src}: element belongs to a defunct audio context`);
+      return;
     }
+    if (!entry) {
+      try {
+        entry = {
+          node: wa.createMediaElementSource(audioElement),
+          refs: 0,
+          direct: false,
+        };
+      } catch (e) {
+        console.warn(`src: ${src}: element is already captured elsewhere`);
+        return;
+      }
+      elementSources.set(audioElement, entry);
+    }
+
+    if (entry.direct) {
+      entry.node.disconnect(wa.destination);
+      entry.direct = false;
+    }
+    entry.refs++;
+    element = audioElement;
+    source = entry.node;
   }
 
   function analyze(source, destination) {
@@ -141,6 +172,31 @@ function AudioTexture(
   }
 
   function dispose() {
+    if (disposed) return;
+    disposed = true;
+
+    if (source) {
+      if (element) {
+        // detach only our analyzer edge, the same node may feed other doodles
+        source.disconnect(analyzer);
+        const entry = elementSources.get(element);
+        if (entry && --entry.refs === 0) {
+          // a captured element only outputs through the graph, keep it audible
+          source.connect(wa.destination);
+          entry.direct = true;
+        }
+      } else {
+        if (isFile) {
+          try {
+            source.stop();
+          } catch (e) {
+            // never started
+          }
+        }
+        source.disconnect();
+      }
+    }
+    analyzer.disconnect();
     texture.dispose();
   }
 

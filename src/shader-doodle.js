@@ -20,7 +20,7 @@ class ShaderDoodleElement extends SDNodeElement {
     this.shadow.innerHTML = Template.render(this.width, this.height);
     this.canvas = Template.map(this.shadow).canvas;
 
-    setTimeout(() => {
+    this.initTimer = setTimeout(() => {
       try {
         this.init();
       } catch (e) {
@@ -30,10 +30,13 @@ class ShaderDoodleElement extends SDNodeElement {
   }
 
   disconnectedCallback() {
+    clearTimeout(this.initTimer);
     super.disconnectedCallback();
-    this.renderer.removeSurface(this.surface);
-    this.surface.dispose();
-    this.surface = undefined;
+    if (this.surface) {
+      this.renderer.removeSurface(this.surface);
+      this.surface.dispose();
+      this.surface = undefined;
+    }
   }
 
   attributeChangedCallback(name) {
@@ -74,6 +77,19 @@ class ShaderDoodleElement extends SDNodeElement {
 
   async init() {
     await super.init();
+
+    // removed while init was awaiting
+    if (!this.isConnected) {
+      if (this.program) this.program.dispose();
+      this.program = undefined;
+      return;
+    }
+
+    // re-added while init was awaiting, replace the stale surface
+    if (this.surface) {
+      this.renderer.removeSurface(this.surface);
+      this.surface.dispose();
+    }
 
     this.surface = Surface(this);
     this.renderer.addSurface(this.surface);

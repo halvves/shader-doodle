@@ -22,6 +22,7 @@ function addHiddenInDOM(video) {
   wrapper.style.zIndex = '-1000';
   wrapper.appendChild(video);
   document.body.appendChild(wrapper);
+  return wrapper;
 }
 
 export default function GeneralTexture(
@@ -41,6 +42,9 @@ export default function GeneralTexture(
 
   let source;
   let type;
+  let wrapper;
+  let owned = false;
+  let disposed = false;
 
   const ustate = [
     {
@@ -88,6 +92,7 @@ export default function GeneralTexture(
 
   function setupImage() {
     type = IMAGE;
+    owned = true;
     source = new Image();
     source.crossOrigin = 'anonymous';
     source.onload = imageOnload;
@@ -110,6 +115,7 @@ export default function GeneralTexture(
 
   function setupVideo() {
     type = VIDEO;
+    owned = true;
     source = document.createElement('video');
 
     source.autoplay = true;
@@ -118,7 +124,7 @@ export default function GeneralTexture(
     source.playsInline = true;
     source.crossOrigin = 'anonymous';
     source.src = src;
-    addHiddenInDOM(source);
+    wrapper = addHiddenInDOM(source);
     source.play();
   }
 
@@ -142,12 +148,19 @@ export default function GeneralTexture(
       navigator.mozGetUserMedia;
 
     const start = stream => {
+      // disposed while waiting on getUserMedia
+      if (disposed) {
+        stream.getTracks().forEach(t => t.stop());
+        return;
+      }
+
+      owned = true;
       source = document.createElement('video');
       source.width = 320;
       source.height = 240;
       source.autoplay = true;
       source.srcObject = stream;
-      addHiddenInDOM(source);
+      wrapper = addHiddenInDOM(source);
     };
 
     const initCam = () => {
@@ -201,6 +214,32 @@ export default function GeneralTexture(
   }
 
   function dispose() {
+    if (disposed) return;
+    disposed = true;
+
+    if (source instanceof HTMLImageElement) {
+      source.removeEventListener('load', imageOnload);
+      if (owned) {
+        source.onload = null;
+        source.onerror = null;
+      }
+    } else if (owned && source instanceof HTMLVideoElement) {
+      source.pause();
+      if (source.srcObject) {
+        source.srcObject.getTracks().forEach(t => t.stop());
+        source.srcObject = null;
+      } else {
+        source.removeAttribute('src');
+        source.load();
+      }
+    }
+
+    if (wrapper && wrapper.parentNode) {
+      wrapper.parentNode.removeChild(wrapper);
+    }
+
+    wrapper = undefined;
+    source = undefined;
     texture.dispose();
   }
 

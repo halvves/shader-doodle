@@ -70,12 +70,10 @@ export default function Program(gl, vs, fs, vertices, shadertoy = false) {
   gl.deleteShader(vertexShader);
   gl.deleteShader(fragmentShader);
 
-  // TODO: where/when to better handle vertices
   const verticesLocation = attributes.position;
+  const vertexCount = vertices.length / 2;
   gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(verticesLocation);
-  gl.vertexAttribPointer(verticesLocation, 2, gl.FLOAT, false, 0, 0);
 
   function addNode(node, name, usePrev) {
     node.toFbo(name, getTexUnit(), usePrev);
@@ -172,13 +170,23 @@ export default function Program(gl, vs, fs, vertices, shadertoy = false) {
 
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.useProgram(program);
+    // attribute state is global to the shared context, so bind per draw
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.enableVertexAttribArray(verticesLocation);
+    gl.vertexAttribPointer(verticesLocation, 2, gl.FLOAT, false, 0, 0);
     update(ustateArray);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    gl.drawArrays(gl.TRIANGLES, 0, vertexCount);
   }
 
   function dispose() {
     textures.forEach(t => t.dispose());
     textures.clear();
+    nodes.clear();
+    if (framebuffer) framebuffer.dispose();
+    if (prevbuffer) prevbuffer.dispose();
+    framebuffer = undefined;
+    prevbuffer = undefined;
+    gl.deleteBuffer(vertexBuffer);
     gl.deleteProgram(program);
   }
 

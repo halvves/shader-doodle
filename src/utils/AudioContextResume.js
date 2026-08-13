@@ -54,20 +54,23 @@ function AudioContextResume(wa) {
     elements.add(el);
   }
 
+  function unregister(el) {
+    el.removeEventListener('touchstart', handleTap);
+    el.removeEventListener('touchmove', handleDrag);
+    el.removeEventListener('touchend', handleTap);
+    el.removeEventListener('mouseup', handleTap);
+    elements.delete(el);
+  }
+
   function dispose() {
-    elements.forEach(el => {
-      el.removeEventListener('touchstart', handleTap);
-      el.removeEventListener('touchmove', handleDrag);
-      el.removeEventListener('touchend', handleTap);
-      el.removeEventListener('mouseup', handleTap);
-    });
-    elements.clear();
+    elements.forEach(unregister);
     dragged.clear();
   }
 
   return {
     onStart,
     register,
+    unregister,
     dispose,
   };
 }
