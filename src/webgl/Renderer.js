@@ -14,6 +14,9 @@ function Renderer() {
   );
   const gl =
     canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  // bail before allocating anything that needs dispose() (AudioContext etc)
+  if (!gl) throw new Error('WebGL is not available in this environment.');
+
   const deviceorientation = DeviceOrientationManager();
   const wa = new (window.AudioContext || window.webkitAudioContext)();
   const audioCtxResume = new AudioContextResume(wa);

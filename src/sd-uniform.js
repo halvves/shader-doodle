@@ -71,7 +71,8 @@ class SDUniformElement extends SDBaseElement {
       case 'y':
       case 'z':
       case 'w':
-        if (newValue != null)
+        // only forward writes once init() has registered the uniform
+        if (newValue != null && this.program)
           this.renderer.setUniform(this.name, this.getValue());
         break;
     }

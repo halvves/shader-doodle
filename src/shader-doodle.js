@@ -21,11 +21,9 @@ class ShaderDoodleElement extends SDNodeElement {
     this.canvas = Template.map(this.shadow).canvas;
 
     this.initTimer = setTimeout(() => {
-      try {
-        this.init();
-      } catch (e) {
+      this.init().catch(e => {
         console.error((e && e.message) || 'Error in shader-doodle.');
-      }
+      });
     });
   }
 
